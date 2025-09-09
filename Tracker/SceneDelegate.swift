@@ -24,7 +24,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
     
     private func showMainScreen() {
-        window?.rootViewController = ViewController()
+        window?.rootViewController = TabBarController()
         UIView.transition(with: window!,
                           duration: 0.3,
                           options: .transitionCrossDissolve,

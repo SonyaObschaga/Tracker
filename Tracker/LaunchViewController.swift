@@ -8,7 +8,7 @@ final class LaunchViewController: UIViewController {
         }
     
     private func setupLaunchView() {
-        view.backgroundColor = UIColor(named: "Blue")
+        view.backgroundColor = UIColor(named: "YPBlue")
         
         let logoImageView = UIImageView(image: UIImage(named: "logo"))
         logoImageView.contentMode = .scaleAspectFit

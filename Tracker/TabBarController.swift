@@ -8,6 +8,7 @@ final class TabBarController: UITabBarController {
     private let centerLabel = UILabel()
     private let mainLabel = UILabel()
     private let searchBar = UISearchBar()
+    private let datePicker = UIDatePicker()
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -17,11 +18,6 @@ final class TabBarController: UITabBarController {
         setupTabBarAppearance()
         setupUI()
         setupNavigationBarAppearance()
-    }
-    
-    // MARK: - Actions
-    @objc private func addTrackerTapped() {
-        
     }
     
     // MARK: - Private Methods
@@ -65,7 +61,6 @@ final class TabBarController: UITabBarController {
         setupCenterLabel()
         setupMainLabel()
         setupSearchBar()
-        setupNavigationBar()
     }
     
     private func setupTabBarAppearance() {
@@ -130,18 +125,6 @@ final class TabBarController: UITabBarController {
         ])
     }
     
-    private func setupNavigationBar() {
-        let addButton = UIBarButtonItem(
-            image: UIImage(named: "add_tracker"),
-            style: .plain,
-            target: self,
-            action: #selector(addTrackerTapped)
-        )
-        
-        navigationItem.leftBarButtonItem = addButton
-        addButton.tintColor = UIColor(named: "YPBlack [day]")
-    }
-    
     private func setupSearchBar() {
         searchBar.placeholder = "Поиск"
         searchBar.searchBarStyle = .minimal
@@ -156,7 +139,7 @@ final class TabBarController: UITabBarController {
             searchBar.topAnchor.constraint(equalTo: mainLabel.bottomAnchor, constant: 7),
             searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            searchBar.heightAnchor.constraint(equalToConstant: 36)
+//            searchBar.heightAnchor.constraint(equalToConstant: 36)
         ])
     }
 }

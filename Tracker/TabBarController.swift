@@ -4,6 +4,7 @@ final class TabBarController: UITabBarController {
     
     private let centerImageView = UIImageView()
     private let centerLabel = UILabel()
+    private let mainLabel = UILabel()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -11,30 +12,48 @@ final class TabBarController: UITabBarController {
         setupViewControllers()
         setupTabBarAppearance()
         setupUI()
+        setupNavigationBarAppearance()
     }
     
     private func setupViewControllers() {
         let trackerVC = TrackerViewController()
         let statisticVC = StatisticViewController()
         
-        trackerVC.tabBarItem = UITabBarItem(
+        let trackerNav = UINavigationController(rootViewController: trackerVC)
+        let statisticNav = UINavigationController(rootViewController: statisticVC)
+        
+        trackerNav.tabBarItem = UITabBarItem(
             title: "Трекеры",
             image: UIImage(named: "record_circle"),
             selectedImage: UIImage(named: "record.circle.fill")
         )
         
-        statisticVC.tabBarItem = UITabBarItem(
+        statisticNav.tabBarItem = UITabBarItem(
             title: "Статистика",
             image: UIImage(systemName: "hare"),
             selectedImage: UIImage(systemName: "hare.fill")
         )
         
-        viewControllers = [trackerVC, statisticVC]
+        viewControllers = [trackerNav, statisticNav]
+    }
+    
+    private func setupNavigationBarAppearance() {
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = UIColor(named: "White")
+        appearance.titleTextAttributes = [
+            .foregroundColor: UIColor(named: "Black [day]") ?? .black,
+            .font: UIFont.systemFont(ofSize: 17, weight: .bold)
+        ]
+        
+        UINavigationBar.appearance().standardAppearance = appearance
+        UINavigationBar.appearance().scrollEdgeAppearance = appearance
     }
     
     private func setupUI() {
         setupCenterImage()
         setupCenterLabel()
+        setupMainLabel()
     }
     
     private func setupTabBarAppearance() {
@@ -77,6 +96,26 @@ final class TabBarController: UITabBarController {
             centerLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             centerLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
         ])
+    }
+    
+    private func setupMainLabel() {
+        mainLabel.text = "Трекеры"
+        mainLabel.textColor = UIColor(named: "Black [day]")
+        mainLabel.numberOfLines = 0
+        mainLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        if let sfProFont = UIFont(name: "SFProText-Bold", size: 34) {
+            mainLabel.font = sfProFont
+        } else {
+            mainLabel.font = UIFont.systemFont(ofSize: 34, weight: .bold)
+        }
+        
+        view.addSubview(mainLabel)
+        
+        NSLayoutConstraint.activate([
+            mainLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 44),
+            mainLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16)
+            ])
     }
     
 }

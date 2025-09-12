@@ -1,13 +1,31 @@
 import UIKit
 
+// MARK: - TrackerViewController
 final class TrackerViewController: UIViewController {
-    private let datePicker = UIDatePicker()
     
+    // MARK: - Private Properties
+    private let datePicker = UIDatePicker()
+    private var categories: [TrackerCategory] = []
+    private var completedTrackers: [TrackerRecord] = []
+    
+    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupNavigationBar()
     }
+    
+    // MARK: - Actions
+    @objc private func addTrackerTapped() {
+        
+    }
+    
+    // MARK: - Private Methods
     private func setupNavigationBar() {
+        setupAddTrackerButton()
+        setupDatePickerForNavigationBar()
+    }
+    
+    private func setupAddTrackerButton() {
         let addButton = UIBarButtonItem(
             image: UIImage(named: "add_tracker"),
             style: .plain,
@@ -17,11 +35,6 @@ final class TrackerViewController: UIViewController {
         
         navigationItem.leftBarButtonItem = addButton
         addButton.tintColor = UIColor(named: "YPBlack [day]")
-        setupDatePickerForNavigationBar()
-    }
-    
-    @objc private func addTrackerTapped() {
-        
     }
     
     private func setupDatePickerForNavigationBar() {

@@ -8,7 +8,6 @@ final class TabBarController: UITabBarController {
     private let centerLabel = UILabel()
     private let mainLabel = UILabel()
     private let searchBar = UISearchBar()
-    private let datePicker = UIDatePicker()
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -31,13 +30,13 @@ final class TabBarController: UITabBarController {
         trackerNav.tabBarItem = UITabBarItem(
             title: "Трекеры",
             image: UIImage(named: "record_circle"),
-            selectedImage: UIImage(named: "record.circle.fill")
+            selectedImage: nil
         )
         
         statisticNav.tabBarItem = UITabBarItem(
             title: "Статистика",
             image: UIImage(systemName: "hare"),
-            selectedImage: UIImage(systemName: "hare.fill")
+            selectedImage: nil
         )
         
         viewControllers = [trackerNav, statisticNav]
@@ -139,7 +138,6 @@ final class TabBarController: UITabBarController {
             searchBar.topAnchor.constraint(equalTo: mainLabel.bottomAnchor, constant: 7),
             searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-//            searchBar.heightAnchor.constraint(equalToConstant: 36)
         ])
     }
 }

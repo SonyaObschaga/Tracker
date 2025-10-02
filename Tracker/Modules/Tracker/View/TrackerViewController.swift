@@ -11,12 +11,14 @@ final class TrackerViewController: UIViewController {
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        view.backgroundColor = .systemBackground
         setupNavigationBar()
     }
     
     // MARK: - Actions
     @objc private func addTrackerTapped() {
-        
+        let createHabitVC = CreateHabitController()
+        present(createHabitVC, animated: true, completion: nil)
     }
     
     // MARK: - Private Methods

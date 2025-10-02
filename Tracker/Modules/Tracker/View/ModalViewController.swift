@@ -17,7 +17,7 @@ var settingsOptions: [SettingsOption] = [
 ]
 
 // MARK: - CreateHabitController
-final class CreateHabitController: UIViewController {
+final class CreateHabitController: UIViewController, UITextFieldDelegate {
     
     // MARK: - UI Elements
     private let titleLabel = UILabel()
@@ -30,6 +30,7 @@ final class CreateHabitController: UIViewController {
         setupTitleLabel()
         setupTextFieldOfHabitName()
         setupTableViewOfHabits()
+        self.textFieldOfHabitName.delegate = self
     }
     
     func setupTitleLabel() {
@@ -103,6 +104,11 @@ final class CreateHabitController: UIViewController {
     private func openScheduleScreen() {
         let scheduleScreenVC = ScheduleScreenViewController()
         present(scheduleScreenVC, animated: true, completion: nil)
+    }
+    
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        self.view.endEditing(true)
+        return false
     }
 }
 

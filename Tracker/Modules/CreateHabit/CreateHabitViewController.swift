@@ -24,7 +24,19 @@ final class CreateHabitViewController: UIViewController {
     private let textFieldOfHabitName = UITextField()
     private let cancelButton = UIButton()
     private let createButton = UIButton()
+    private let tableView = UITableView()
+    private var tableViewTopConstraint: NSLayoutConstraint!
     
+    private lazy var warningLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Ограничение 38 символов"
+        label.font = UIFont.systemFont(ofSize: 17, weight: .regular)
+        label.textColor = .ypRed
+        label.isHidden = true
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -32,6 +44,7 @@ final class CreateHabitViewController: UIViewController {
         view.backgroundColor = .ypWhiteDay
         setupTitleLabel()
         setupTextFieldOfHabitName()
+        setupWarningLabel()
         setupTableViewOfHabits()
         setupButtons()
         self.textFieldOfHabitName.delegate = self
@@ -80,7 +93,6 @@ final class CreateHabitViewController: UIViewController {
     }
     
     private func setupTableViewOfHabits() {
-        let tableView = UITableView()
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
         tableView.dataSource = self
         tableView.delegate = self
@@ -93,8 +105,10 @@ final class CreateHabitViewController: UIViewController {
         tableView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(tableView)
         
+        tableViewTopConstraint = tableView.topAnchor.constraint(equalTo: textFieldOfHabitName.bottomAnchor, constant: 24)
+        
         NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: textFieldOfHabitName.bottomAnchor, constant: 24),
+            tableViewTopConstraint,
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             tableView.heightAnchor.constraint(equalToConstant: 150)
@@ -163,6 +177,46 @@ final class CreateHabitViewController: UIViewController {
             createButton.widthAnchor.constraint(equalTo: cancelButton.widthAnchor)
         ])
     }
+    
+    private func setupWarningLabel() {
+        view.addSubview(warningLabel)
+        
+        NSLayoutConstraint.activate([
+            warningLabel.topAnchor.constraint(equalTo: textFieldOfHabitName.bottomAnchor, constant: 8),
+            warningLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+        ])
+    }
+    
+    private func showWarningLabel() {
+        guard warningLabel.isHidden else { return }
+        
+        warningLabel.isHidden = false
+        warningLabel.alpha = 0
+        
+        UIView.animate(withDuration: 0.3) {
+            self.tableViewTopConstraint.isActive = false
+            self.tableViewTopConstraint = self.tableView.topAnchor.constraint(equalTo: self.warningLabel.bottomAnchor, constant: 32)
+            self.tableViewTopConstraint.isActive = true
+            
+            self.warningLabel.alpha = 1
+            self.view.layoutIfNeeded()
+        }
+    }
+    
+    private func hideWarningLabel() {
+        guard !warningLabel.isHidden else { return }
+        
+        UIView.animate(withDuration: 0.3) {
+            self.tableViewTopConstraint.isActive = false
+            self.tableViewTopConstraint = self.tableView.topAnchor.constraint(equalTo: self.textFieldOfHabitName.bottomAnchor, constant: 24)
+            self.tableViewTopConstraint.isActive = true
+            
+            self.warningLabel.alpha = 0
+            self.view.layoutIfNeeded()
+        } completion: { _ in
+            self.warningLabel.isHidden = true
+        }
+    }
 }
 
 
@@ -223,7 +277,20 @@ extension CreateHabitViewController: UITextFieldDelegate {
         let currentText = textField.text ?? ""
         guard let rangeRange = Range(range, in: currentText) else { return false }
         let newText = currentText.replacingCharacters(in: rangeRange, with: string)
-        return newText.count <= 38
+        let maxLength = 38
+        
+        if newText.count >= maxLength - 5 {
+            showWarningLabel()
+        } else {
+            hideWarningLabel()
+        }
+        
+        return newText.count <= maxLength
+    }
+    
+    func textFieldShouldClear(_ textField: UITextField) -> Bool {
+        hideWarningLabel()
+        return true
     }
 }
 

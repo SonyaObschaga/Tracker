@@ -17,7 +17,7 @@ final class TrackerViewController: UIViewController {
     
     // MARK: - Actions
     @objc private func addTrackerTapped() {
-        let createHabitVC = CreateHabitController()
+        let createHabitVC = CreateHabitViewController()
         present(createHabitVC, animated: true, completion: nil)
     }
     

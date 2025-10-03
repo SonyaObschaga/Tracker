@@ -19,7 +19,7 @@ final class CreateHabitViewController: UIViewController {
     // MARK: - Properties
     private var selectedSchedule: [Weekday] = []
     private var settingsOptions: [SettingsOption] = [
-        SettingsOption(title: "Категория", subtitle: nil, type: .category),
+        SettingsOption(title: "Категория", subtitle: "Важное", type: .category),
         SettingsOption(title: "Расписание", subtitle: nil, type: .schedule)
     ]
     
@@ -47,6 +47,11 @@ final class CreateHabitViewController: UIViewController {
         super.viewDidLoad()
         setupUI()
         self.textFieldOfHabitName.delegate = self
+    }
+    
+    // MARK: - Actions
+    @objc private func didTapCancelButton() {
+        dismiss(animated: true, completion: nil)
     }
     
     // MARK: - Private Methods
@@ -92,7 +97,6 @@ final class CreateHabitViewController: UIViewController {
         print("Обновляем subtitle: '\(scheduleText)'")
         let scheduleIndexPath = IndexPath(row: 1, section: 0)
         tableView.reloadRows(at: [scheduleIndexPath], with: .automatic)
-        //        tableView.reloadData()
     }
     
     private func setupTitleLabel() {
@@ -168,6 +172,8 @@ final class CreateHabitViewController: UIViewController {
         
         cancelButton.setTitle("Отменить", for: .normal)
         cancelButton.setTitleColor(.ypRed, for: .normal)
+        
+        cancelButton.addTarget(self, action: #selector(didTapCancelButton), for: .touchUpInside)
         
         cancelButton.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(cancelButton)

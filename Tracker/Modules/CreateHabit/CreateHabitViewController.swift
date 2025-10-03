@@ -2,7 +2,7 @@ import UIKit
 
 struct SettingsOption {
     let title: String
-    let subtitle: String?
+    var subtitle: String?
     let type: SettingsOptionType
 }
 
@@ -11,13 +11,17 @@ enum SettingsOptionType {
     case schedule
 }
 
-var settingsOptions: [SettingsOption] = [
-    SettingsOption(title: "Категория", subtitle: nil, type: .category),
-    SettingsOption(title: "Расписание", subtitle: nil, type: .schedule)
-]
+
 
 // MARK: - CreateHabitController
 final class CreateHabitViewController: UIViewController {
+    
+    // MARK: - Properties
+    private var selectedSchedule: [Weekday] = []
+    private var settingsOptions: [SettingsOption] = [
+        SettingsOption(title: "Категория", subtitle: nil, type: .category),
+        SettingsOption(title: "Расписание", subtitle: nil, type: .schedule)
+    ]
     
     // MARK: - UI Elements
     private let titleLabel = UILabel()
@@ -41,16 +45,56 @@ final class CreateHabitViewController: UIViewController {
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupUI()
+        self.textFieldOfHabitName.delegate = self
+    }
+    
+    // MARK: - Private Methods
+    private func setupUI() {
         view.backgroundColor = .ypWhiteDay
         setupTitleLabel()
         setupTextFieldOfHabitName()
         setupWarningLabel()
         setupTableViewOfHabits()
         setupButtons()
-        self.textFieldOfHabitName.delegate = self
     }
     
-    // MARK: - Private Methods
+    private func openCategoryScreen() {
+        let categoryScreenVC = CategoryScreenViewController()
+        present(categoryScreenVC, animated: true, completion: nil)
+    }
+    
+    private func openScheduleScreen() {
+        let scheduleScreenVC = ScheduleScreenViewController()
+        scheduleScreenVC.delegate = self
+        scheduleScreenVC.selectedDays = selectedSchedule
+        present(scheduleScreenVC, animated: true, completion: nil)
+    }
+    
+    private func updateScheduleSubtitle() {
+        let scheduleText: String
+        
+        if selectedSchedule.isEmpty {
+            scheduleText = ""
+        } else if selectedSchedule.count == Weekday.allCases.count {
+            scheduleText = "Каждый день"
+        } else {
+            let sortedDays = selectedSchedule.sorted { $0.rawValue < $1.rawValue }
+            scheduleText = sortedDays.map { $0.shortName }.joined(separator: ", ")
+        }
+        
+        settingsOptions[1] = SettingsOption(
+            title: "Расписание",
+            subtitle: scheduleText.isEmpty ? nil : scheduleText,
+            type: .schedule
+        )
+        
+        print("Обновляем subtitle: '\(scheduleText)'")
+        let scheduleIndexPath = IndexPath(row: 1, section: 0)
+        tableView.reloadRows(at: [scheduleIndexPath], with: .automatic)
+        //        tableView.reloadData()
+    }
+    
     private func setupTitleLabel() {
         titleLabel.text = "Новая привычка"
         titleLabel.textAlignment = .center
@@ -113,16 +157,6 @@ final class CreateHabitViewController: UIViewController {
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             tableView.heightAnchor.constraint(equalToConstant: 150)
         ])
-    }
-    
-    private func openCategoryScreen() {
-        let categoryScreenVC = CategoryScreenViewController()
-        present(categoryScreenVC, animated: true, completion: nil)
-    }
-    
-    private func openScheduleScreen() {
-        let scheduleScreenVC = ScheduleScreenViewController()
-        present(scheduleScreenVC, animated: true, completion: nil)
     }
     
     private func setupCancelButton() {
@@ -217,10 +251,6 @@ final class CreateHabitViewController: UIViewController {
     }
 }
 
-
-
-
-
 // MARK: - UITableViewDataSource
 extension CreateHabitViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -228,13 +258,21 @@ extension CreateHabitViewController: UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
+        let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "Cell")
         let option = settingsOptions[indexPath.row]
         
         cell.textLabel?.text = option.title
         cell.textLabel?.font = UIFont.systemFont(ofSize: 17, weight: .regular)
         cell.backgroundColor = .ypBackgroundDay
         cell.accessoryType = .disclosureIndicator
+        
+        if let subtitle = option.subtitle {
+            cell.detailTextLabel?.text = subtitle
+            cell.detailTextLabel?.textColor = .ypGray
+            cell.detailTextLabel?.font = UIFont.systemFont(ofSize: 17, weight: .regular)
+        } else {
+            cell.detailTextLabel?.text = nil
+        }
         
         if indexPath.row == settingsOptions.count - 1 {
             cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: .greatestFiniteMagnitude)
@@ -292,6 +330,12 @@ extension CreateHabitViewController: UITextFieldDelegate {
     }
 }
 
+extension CreateHabitViewController: ScheduleDelegate {
+    func didSelectSchedule(days: [Weekday]) {
+        selectedSchedule = days
+        updateScheduleSubtitle()
+    }
+}
 
 #Preview {
     CreateHabitViewController()

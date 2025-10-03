@@ -8,22 +8,21 @@ struct ScheduleOption {
 // MARK: - ScheduleScreenViewController
 final class ScheduleScreenViewController: UIViewController {
     
+    // MARK: - Properties
+    private var scheduleOptions: [ScheduleOption] = []
+    weak var delegate: ScheduleDelegate?
+    var selectedDays: [Weekday] = []
+    
     // MARK: - UI Elements
     private let titleLabel = UILabel()
     private let tableView = UITableView()
-    private let readyButton = UIButton()
-    
-    // MARK: - Data
-    private var scheduleOptions: [ScheduleOption] = []
+    private let doneButton = UIButton()
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .ypWhiteDay
-        setupTitleLabel()
+        setupUI()
         setupData()
-        setupTableView()
-        setupReadyButton()
     }
     
     // MARK: - Actions
@@ -32,7 +31,23 @@ final class ScheduleScreenViewController: UIViewController {
         scheduleOptions[index].isSelected = sender.isOn
     }
     
+    @objc private func doneButtonTapped() {
+        selectedDays = scheduleOptions
+            .filter { $0.isSelected }
+            .map { $0.weekday }
+        
+        delegate?.didSelectSchedule(days: selectedDays)
+        dismiss(animated: true)
+    }
+    
     // MARK: - Private Methods
+    private func setupUI() {
+        view.backgroundColor = .ypWhiteDay
+        setupTitleLabel()
+        setupTableView()
+        setupDoneButton()
+    }
+    
     private func setupTitleLabel() {
         titleLabel.text = "Расписание"
         titleLabel.textAlignment = .center
@@ -71,27 +86,30 @@ final class ScheduleScreenViewController: UIViewController {
     
     private func setupData() {
         scheduleOptions = Weekday.allCases.map { weekday in
-            ScheduleOption(weekday: weekday, isSelected: false)
+            let isSelected = selectedDays.contains(weekday)
+            return ScheduleOption(weekday: weekday, isSelected: isSelected)
         }
     }
     
-    private func setupReadyButton() {
-        readyButton.backgroundColor = .ypBlackDay
-        readyButton.layer.cornerRadius = 16
-        readyButton.layer.masksToBounds = true
-        readyButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+    private func setupDoneButton() {
+        doneButton.backgroundColor = .ypBlackDay
+        doneButton.layer.cornerRadius = 16
+        doneButton.layer.masksToBounds = true
+        doneButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         
-        readyButton.setTitle("Готово", for: .normal)
-        readyButton.setTitleColor(.ypWhiteDay, for: .normal)
+        doneButton.setTitle("Готово", for: .normal)
+        doneButton.setTitleColor(.ypWhiteDay, for: .normal)
         
-        readyButton.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(readyButton)
+        doneButton.addTarget(self, action: #selector(doneButtonTapped), for: .touchUpInside)
+        
+        doneButton.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(doneButton)
         
         NSLayoutConstraint.activate([
-            readyButton.topAnchor.constraint(equalTo: tableView.bottomAnchor, constant: 47),
-            readyButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            readyButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            readyButton.heightAnchor.constraint(equalToConstant: 60)
+            doneButton.topAnchor.constraint(equalTo: tableView.bottomAnchor, constant: 47),
+            doneButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            doneButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            doneButton.heightAnchor.constraint(equalToConstant: 60)
         ])
     }
 }

@@ -125,8 +125,6 @@ final class CreateHabitViewController: UIViewController {
         present(scheduleScreenVC, animated: true, completion: nil)
     }
     
-    
-    
     private func setupCancelButton() {
         cancelButton.layer.masksToBounds = true
         cancelButton.layer.cornerRadius = 16

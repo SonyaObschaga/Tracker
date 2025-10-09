@@ -15,7 +15,6 @@ final class TabBarController: UITabBarController {
         
         setupViewControllers()
         setupTabBarAppearance()
-        setupUI()
         setupNavigationBarAppearance()
     }
     
@@ -55,90 +54,10 @@ final class TabBarController: UITabBarController {
         UINavigationBar.appearance().scrollEdgeAppearance = appearance
     }
     
-    private func setupUI() {
-        setupCenterImage()
-        setupCenterLabel()
-        setupMainLabel()
-        setupSearchBar()
-    }
-    
     private func setupTabBarAppearance() {
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = UIColor(named: "White")
-    }
-    
-    private func setupCenterImage() {
-        centerImageView.image = UIImage(named: "dizzy")
-        centerImageView.contentMode = .scaleAspectFit
-        centerImageView.translatesAutoresizingMaskIntoConstraints = false
-        
-        view.addSubview(centerImageView)
-        
-        NSLayoutConstraint.activate([
-            centerImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            centerImageView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            centerImageView.widthAnchor.constraint(equalToConstant: 80),
-            centerImageView.heightAnchor.constraint(equalToConstant: 80)
-        ])
-    }
-    
-    private func setupCenterLabel() {
-        centerLabel.text = "Что будем отслеживать?"
-        centerLabel.textAlignment = .center
-        centerLabel.numberOfLines = 0
-        centerLabel.textColor = UIColor(named: "YPBlack [day]")
-        centerLabel.translatesAutoresizingMaskIntoConstraints = false
-        
-        if let sfProFont = UIFont(name: "SFProText-Medium", size: 12) {
-            centerLabel.font = sfProFont
-        } else {
-            centerLabel.font = UIFont.systemFont(ofSize: 12, weight: .medium)
-        }
-        view.addSubview(centerLabel)
-        
-        NSLayoutConstraint.activate([
-            centerLabel.topAnchor.constraint(equalTo: centerImageView.bottomAnchor, constant: 8),
-            centerLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            centerLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
-        ])
-    }
-    
-    private func setupMainLabel() {
-        mainLabel.text = "Трекеры"
-        mainLabel.textColor = UIColor(named: "YPBlack [day]")
-        mainLabel.numberOfLines = 0
-        mainLabel.translatesAutoresizingMaskIntoConstraints = false
-        
-        if let sfProFont = UIFont(name: "SFProText-Bold", size: 34) {
-            mainLabel.font = sfProFont
-        } else {
-            mainLabel.font = UIFont.systemFont(ofSize: 34, weight: .bold)
-        }
-        
-        view.addSubview(mainLabel)
-        
-        NSLayoutConstraint.activate([
-            mainLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 44),
-            mainLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16)
-        ])
-    }
-    
-    private func setupSearchBar() {
-        searchBar.placeholder = "Поиск"
-        searchBar.searchBarStyle = .minimal
-        searchBar.translatesAutoresizingMaskIntoConstraints = false
-        
-        searchBar.searchTextField.font = UIFont.systemFont(ofSize: 17)
-        searchBar.searchTextField.textColor = UIColor(named: "YPGray")
-        
-        view.addSubview(searchBar)
-        
-        NSLayoutConstraint.activate([
-            searchBar.topAnchor.constraint(equalTo: mainLabel.bottomAnchor, constant: 7),
-            searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-        ])
     }
 }
 

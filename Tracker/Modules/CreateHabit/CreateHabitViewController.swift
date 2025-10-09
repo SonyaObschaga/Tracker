@@ -18,6 +18,8 @@ final class CreateHabitViewController: UIViewController {
     
     // MARK: - Properties
     private var selectedSchedule: [Weekday] = []
+    private var selectedCategory = "Важное"
+    weak var delegate: CreateHabitDelegate?
     private var settingsOptions: [SettingsOption] = [
         SettingsOption(title: "Категория", subtitle: "Важное", type: .category),
         SettingsOption(title: "Расписание", subtitle: nil, type: .schedule)
@@ -47,6 +49,7 @@ final class CreateHabitViewController: UIViewController {
         super.viewDidLoad()
         setupUI()
         self.textFieldOfHabitName.delegate = self
+        updateCreateButtonState()
     }
     
     // MARK: - Actions
@@ -54,7 +57,35 @@ final class CreateHabitViewController: UIViewController {
         dismiss(animated: true, completion: nil)
     }
     
+    @objc private func didTapCreateButton() {
+        guard let trackerName = textFieldOfHabitName.text, !trackerName.isEmpty,
+              !selectedSchedule.isEmpty else { return }
+        
+        let newTracker = Tracker(
+            id: UUID(),
+            title: trackerName,
+            color: .ypRed,
+            emoji: "🧊",
+            schedule: selectedSchedule,
+            isRegular: true)
+        
+        delegate?.didCreateNewTracker(newTracker, category: selectedCategory)
+        dismiss(animated: true)
+    }
+    
+    @objc private func textFieldDidChange() {
+        updateCreateButtonState()
+    }
+    
     // MARK: - Private Methods
+    private func updateCreateButtonState() {
+        let isFormValid = !(textFieldOfHabitName.text?.isEmpty ?? true) && selectedCategory == "Важное" && !selectedSchedule.isEmpty
+        
+        createButton.isEnabled = isFormValid
+        createButton.backgroundColor = isFormValid ? .ypBlackDay : .ypGray
+        
+    }
+    
     private func setupUI() {
         view.backgroundColor = .ypWhiteDay
         setupTitleLabel()
@@ -125,6 +156,8 @@ final class CreateHabitViewController: UIViewController {
         
         textFieldOfHabitName.returnKeyType = .done
         
+        textFieldOfHabitName.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
+        
         let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: textFieldOfHabitName.frame.height))
         textFieldOfHabitName.leftView = paddingView
         textFieldOfHabitName.leftViewMode = .always
@@ -190,12 +223,15 @@ final class CreateHabitViewController: UIViewController {
         createButton.layer.masksToBounds = true
         createButton.layer.cornerRadius = 16
         createButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+        createButton.isEnabled = false
         
         createButton.setTitle("Создать", for: .normal)
         createButton.setTitleColor(.ypWhiteDay, for: .normal)
         
         createButton.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(createButton)
+        
+        createButton.addTarget(self, action: #selector(didTapCreateButton), for: .touchUpInside)
         
         NSLayoutConstraint.activate([
             createButton.heightAnchor.constraint(equalToConstant: 60),
@@ -327,11 +363,19 @@ extension CreateHabitViewController: UITextFieldDelegate {
             hideWarningLabel()
         }
         
+        DispatchQueue.main.async {
+            self.updateCreateButtonState()
+        }
+        
         return newText.count <= maxLength
     }
     
     func textFieldShouldClear(_ textField: UITextField) -> Bool {
         hideWarningLabel()
+        DispatchQueue.main.async {
+            self.updateCreateButtonState()
+        }
+        
         return true
     }
 }
@@ -340,6 +384,7 @@ extension CreateHabitViewController: ScheduleDelegate {
     func didSelectSchedule(days: [Weekday]) {
         selectedSchedule = days
         updateScheduleSubtitle()
+        updateCreateButtonState()
     }
 }
 

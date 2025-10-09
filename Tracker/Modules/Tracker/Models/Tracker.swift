@@ -1,14 +1,15 @@
 import Foundation
+import UIKit
 
 struct Tracker {
     let id: UUID
     let title: String
-    let color: String
+    let color: UIColor
     let emoji: String
-    let schedule: [Weekday]
+    let schedule: [Weekday]?
     let isRegular: Bool
     
-    init(id: UUID = UUID(), title: String, color: String, emoji: String, schedule: [Weekday], isRegular: Bool = false) {
+    init(id: UUID = UUID(), title: String, color: UIColor, emoji: String, schedule: [Weekday], isRegular: Bool = false) {
         self.id = id
         self.title = title
         self.color = color

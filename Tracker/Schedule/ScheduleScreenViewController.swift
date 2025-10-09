@@ -153,7 +153,3 @@ extension ScheduleScreenViewController: UITableViewDelegate {
         return 75
     }
 }
-
-#Preview {
-    ScheduleScreenViewController()
-}

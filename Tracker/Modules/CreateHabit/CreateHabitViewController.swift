@@ -1,24 +1,16 @@
 import UIKit
 
-struct SettingsOption {
-    let title: String
-    var subtitle: String?
-    let type: SettingsOptionType
+protocol CategoryViewControllerDelegate: AnyObject {
+    func didSelectCategory(_ category: TrackerCategory?)
 }
-
-enum SettingsOptionType {
-    case category
-    case schedule
-}
-
-
 
 // MARK: - CreateHabitController
 final class CreateHabitViewController: UIViewController {
     
     // MARK: - Properties
     private var selectedSchedule: [Weekday] = []
-    private var selectedCategory = "Важное"
+    var categories: [TrackerCategory] = []
+    private var selectedCategory: TrackerCategory?
     weak var delegate: CreateHabitDelegate?
     private var settingsOptions: [SettingsOption] = [
         SettingsOption(title: "Категория", subtitle: "Важное", type: .category),
@@ -61,6 +53,8 @@ final class CreateHabitViewController: UIViewController {
         guard let trackerName = textFieldOfHabitName.text, !trackerName.isEmpty,
               !selectedSchedule.isEmpty else { return }
         
+        let categoryToUse = selectedCategory ?? getDefaultCategory()
+        
         let newTracker = Tracker(
             id: UUID(),
             title: trackerName,
@@ -69,7 +63,7 @@ final class CreateHabitViewController: UIViewController {
             schedule: selectedSchedule,
             isRegular: true)
         
-        delegate?.didCreateNewTracker(newTracker, category: selectedCategory)
+        delegate?.didCreateTracker(newTracker, in: categoryToUse)
         dismiss(animated: true)
     }
     
@@ -77,15 +71,7 @@ final class CreateHabitViewController: UIViewController {
         updateCreateButtonState()
     }
     
-    // MARK: - Private Methods
-    private func updateCreateButtonState() {
-        let isFormValid = !(textFieldOfHabitName.text?.isEmpty ?? true) && selectedCategory == "Важное" && !selectedSchedule.isEmpty
-        
-        createButton.isEnabled = isFormValid
-        createButton.backgroundColor = isFormValid ? .ypBlackDay : .ypGray
-        
-    }
-    
+    // MARK: - SetupUI
     private func setupUI() {
         view.backgroundColor = .ypWhiteDay
         setupTitleLabel()
@@ -93,6 +79,18 @@ final class CreateHabitViewController: UIViewController {
         setupWarningLabel()
         setupTableViewOfHabits()
         setupButtons()
+    }
+    
+    private func setupButtons() {
+        setupCreateButton()
+        setupCancelButton()
+        
+        NSLayoutConstraint.activate([
+            createButton.leadingAnchor.constraint(equalTo: cancelButton.trailingAnchor, constant: 8),
+            createButton.centerYAnchor.constraint(equalTo: cancelButton.centerYAnchor),
+            createButton.heightAnchor.constraint(equalTo: cancelButton.heightAnchor),
+            createButton.widthAnchor.constraint(equalTo: cancelButton.widthAnchor)
+        ])
     }
     
     private func openCategoryScreen() {
@@ -153,9 +151,7 @@ final class CreateHabitViewController: UIViewController {
         textFieldOfHabitName.layer.cornerRadius = 16
         textFieldOfHabitName.font = UIFont.systemFont(ofSize: 17, weight: .regular)
         textFieldOfHabitName.clearButtonMode = .whileEditing
-        
         textFieldOfHabitName.returnKeyType = .done
-        
         textFieldOfHabitName.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
         
         let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: textFieldOfHabitName.frame.height))
@@ -240,18 +236,6 @@ final class CreateHabitViewController: UIViewController {
         ])
     }
     
-    private func setupButtons() {
-        setupCreateButton()
-        setupCancelButton()
-        
-        NSLayoutConstraint.activate([
-            createButton.leadingAnchor.constraint(equalTo: cancelButton.trailingAnchor, constant: 8),
-            createButton.centerYAnchor.constraint(equalTo: cancelButton.centerYAnchor),
-            createButton.heightAnchor.constraint(equalTo: cancelButton.heightAnchor),
-            createButton.widthAnchor.constraint(equalTo: cancelButton.widthAnchor)
-        ])
-    }
-    
     private func setupWarningLabel() {
         view.addSubview(warningLabel)
         
@@ -259,6 +243,24 @@ final class CreateHabitViewController: UIViewController {
             warningLabel.topAnchor.constraint(equalTo: textFieldOfHabitName.bottomAnchor, constant: 8),
             warningLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor)
         ])
+    }
+    
+    
+    
+    // MARK: - Private Methods
+    private func getDefaultCategory() -> TrackerCategory {
+        if let generalCategory = categories.first(where: { $0.title == "Общее" }) {
+            return generalCategory
+        } else {
+            return TrackerCategory(title: "Общее", trackers: [])
+        }
+    }
+    
+    private func updateCreateButtonState() {
+        let isFormValid = !(textFieldOfHabitName.text?.isEmpty ?? true) && !selectedSchedule.isEmpty
+        
+        createButton.isEnabled = isFormValid
+        createButton.backgroundColor = isFormValid ? .ypBlackDay : .ypGray
     }
     
     private func showWarningLabel() {
@@ -319,10 +321,9 @@ extension CreateHabitViewController: UITableViewDataSource {
         if indexPath.row == settingsOptions.count - 1 {
             cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: .greatestFiniteMagnitude)
         }
+        
         return cell
     }
-    
-    
 }
 
 // MARK: - UITableViewDelegate
@@ -345,6 +346,7 @@ extension CreateHabitViewController: UITableViewDelegate {
     }
 }
 
+// MARK: - UITextFieldDelegate
 extension CreateHabitViewController: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         self.view.endEditing(true)
@@ -380,14 +382,11 @@ extension CreateHabitViewController: UITextFieldDelegate {
     }
 }
 
+// MARK: - ScheduleDelegate
 extension CreateHabitViewController: ScheduleDelegate {
     func didSelectSchedule(days: [Weekday]) {
         selectedSchedule = days
         updateScheduleSubtitle()
         updateCreateButtonState()
     }
-}
-
-#Preview {
-    CreateHabitViewController()
 }

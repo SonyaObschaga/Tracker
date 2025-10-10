@@ -24,7 +24,7 @@ class TrackerViewController: UIViewController {
         collectionView.showsVerticalScrollIndicator = false
         return collectionView
     }()
-
+    
     // MARK: -  Private Properties
     private var trackers: [Tracker] = []
     private var visibleCategories: [TrackerCategory] = []
@@ -114,6 +114,14 @@ class TrackerViewController: UIViewController {
     }
     
     private func setupNavigationBar() {
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.shadowColor = .clear
+        appearance.backgroundColor = .systemBackground
+        
+        navigationController?.navigationBar.standardAppearance = appearance
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        navigationController?.navigationBar.compactAppearance = appearance
         let datePicker = UIDatePicker()
         datePicker.datePickerMode = .date
         datePicker.preferredDatePickerStyle = .compact
@@ -171,7 +179,7 @@ class TrackerViewController: UIViewController {
         
         contentView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(contentView)
-
+        
         NSLayoutConstraint.activate([
             contentView.topAnchor.constraint(equalTo: searchBar.bottomAnchor),
             contentView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -186,7 +194,7 @@ class TrackerViewController: UIViewController {
         placeholderStackView.alignment = .center
         placeholderStackView.spacing = 16
         
-        let placeholderImage = UIImageView(image: UIImage(named: "1"))
+        let placeholderImage = UIImageView(image: UIImage(named: "dizzy"))
         placeholderImage.contentMode = .scaleAspectFit
         placeholderImage.translatesAutoresizingMaskIntoConstraints = false
         
@@ -206,7 +214,7 @@ class TrackerViewController: UIViewController {
         
         contentView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(placeholderStackView)
-
+        
         NSLayoutConstraint.activate([
             placeholderStackView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             placeholderStackView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
@@ -253,7 +261,7 @@ class TrackerViewController: UIViewController {
             title: "Учить iOS",
             color: .systemRed,
             emoji: "🍏",
-            schedule: [.monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday]
+            schedule: [.monday, .tuesday, .wednesday, .friday, .saturday, .sunday]
         )
         
         trackers = [tracker1, tracker2, tracker3]
@@ -329,7 +337,7 @@ extension TrackerViewController: UICollectionViewDataSource {
 
 // MARK: - TrackerCellDelegate
 extension TrackerViewController: TrackerCellDelegate {
-    func completetracker(id: UUID, at indexPath: IndexPath) {
+    func completeTracker(id: UUID, at indexPath: IndexPath) {
         let today = Date()
         let calendar = Calendar.current
         if calendar.isDate(currentDate, inSameDayAs: today)
@@ -354,8 +362,8 @@ extension TrackerViewController: TrackerCellDelegate {
         let today = Date()
         let calendar = Calendar.current
         if calendar.isDate(currentDate, inSameDayAs: today) || currentDate < today {
-            completedTrackers.removeAll { TrackerRecord in
-                isSameTrackerRecord(trackerRecord: TrackerRecord, id: id)
+            completedTrackers.removeAll { trackerRecord in
+                isSameTrackerRecord(trackerRecord: trackerRecord, id: id)
             }
             
             if let cell = collectionView.cellForItem(at: indexPath)

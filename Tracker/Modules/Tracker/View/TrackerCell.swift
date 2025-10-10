@@ -176,7 +176,7 @@ final class TrackerCell: UICollectionViewCell {
         if isCompletedToday {
             delegate?.uncompleteTracker(id: trackerId, at: indexPath)
         } else {
-            delegate?.completetracker(id: trackerId, at: indexPath)
+            delegate?.completeTracker(id: trackerId, at: indexPath)
         }
     }
 }

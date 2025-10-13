@@ -17,6 +17,20 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window = UIWindow(windowScene: windowScene)
         window?.rootViewController = LaunchViewController()
         window?.makeKeyAndVisible()
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            self.showMainScreen()
+        }
+    }
+    
+    private func showMainScreen() {
+        window?.rootViewController = TabBarController()
+        UIView.transition(with: window!,
+                          duration: 0.3,
+                          options: .transitionCrossDissolve,
+                          animations: nil,
+                          completion: nil
+        )
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {

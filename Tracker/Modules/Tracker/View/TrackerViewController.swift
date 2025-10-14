@@ -184,7 +184,7 @@ class TrackerViewController: UIViewController {
             contentView.topAnchor.constraint(equalTo: searchBar.bottomAnchor),
             contentView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             contentView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            contentView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            contentView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
     }
     
@@ -418,7 +418,7 @@ extension TrackerViewController: CreateHabitDelegate {
             categories[categoryIndex] = updatedCategory
         } else {
             let newCategory = TrackerCategory(
-                title: "Общее",
+                title: "Важно",
                 trackers: [tracker]
             )
             categories.append(newCategory)

@@ -8,6 +8,9 @@ protocol CategoryViewControllerDelegate: AnyObject {
 final class CreateHabitViewController: UIViewController {
     
     // MARK: - UI Elements
+    private let scrollView = UIScrollView()
+    private let contentView = UIView()
+    private let buttonsContainer = UIView()
     private let titleLabel = UILabel()
     private let textFieldOfHabitName = UITextField()
     private let cancelButton = UIButton()
@@ -113,6 +116,9 @@ final class CreateHabitViewController: UIViewController {
     // MARK: - SetupUI
     private func setupUI() {
         view.backgroundColor = .ypWhiteDay
+        setupButtonsContainer()
+        setupScrollView()
+        setupContentView()
         setupTitleLabel()
         setupTextFieldOfHabitName()
         setupWarningLabel()
@@ -121,28 +127,94 @@ final class CreateHabitViewController: UIViewController {
         setupCollectionView()
     }
     
-    private func setupButtons() {
-        setupCreateButton()
-        setupCancelButton()
+    private func setupScrollView() {
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(scrollView)
         
         NSLayoutConstraint.activate([
-            createButton.leadingAnchor.constraint(equalTo: cancelButton.trailingAnchor, constant: 8),
-            createButton.centerYAnchor.constraint(equalTo: cancelButton.centerYAnchor),
-            createButton.heightAnchor.constraint(equalTo: cancelButton.heightAnchor),
-            createButton.widthAnchor.constraint(equalTo: cancelButton.widthAnchor)
+            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: buttonsContainer.topAnchor)
         ])
     }
     
-    private func openCategoryScreen() {
-        let categoryScreenVC = CategoryScreenViewController()
-        present(categoryScreenVC, animated: true, completion: nil)
+    private func setupContentView() {
+        contentView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.addSubview(contentView)
+        
+        NSLayoutConstraint.activate([
+            contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
+            contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+            contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
+            contentView.heightAnchor.constraint(greaterThanOrEqualTo: scrollView.heightAnchor)
+        ])
     }
     
-    private func openScheduleScreen() {
-        let scheduleScreenVC = ScheduleScreenViewController()
-        scheduleScreenVC.delegate = self
-        scheduleScreenVC.selectedDays = selectedSchedule
-        present(scheduleScreenVC, animated: true, completion: nil)
+    private func setupButtonsContainer() {
+        buttonsContainer.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(buttonsContainer)
+        
+        NSLayoutConstraint.activate([
+            buttonsContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            buttonsContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            buttonsContainer.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            buttonsContainer.heightAnchor.constraint(equalToConstant: 100)
+        ])
+    }
+    
+    private func setupButtons() {
+        let stackView = UIStackView()
+        stackView.axis = .horizontal
+        stackView.spacing = 8
+        stackView.distribution = .fillEqually
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        
+        buttonsContainer.addSubview(stackView)
+        
+        setupCancelButton()
+        setupCreateButton()
+        
+        stackView.addArrangedSubview(cancelButton)
+        stackView.addArrangedSubview(createButton)
+        
+        NSLayoutConstraint.activate([
+            stackView.leadingAnchor.constraint(equalTo: buttonsContainer.leadingAnchor, constant: 20),
+            stackView.trailingAnchor.constraint(equalTo: buttonsContainer.trailingAnchor, constant: -20),
+            stackView.bottomAnchor.constraint(equalTo: buttonsContainer.bottomAnchor, constant: -20),
+            stackView.heightAnchor.constraint(equalToConstant: 60)
+        ])
+    }
+    
+    private func setupCancelButton() {
+        cancelButton.layer.masksToBounds = true
+        cancelButton.layer.cornerRadius = 16
+        cancelButton.layer.borderWidth = 1
+        cancelButton.layer.borderColor = UIColor.ypRed.cgColor
+        cancelButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+        
+        cancelButton.setTitle("Отменить", for: .normal)
+        cancelButton.setTitleColor(.ypRed, for: .normal)
+        
+        cancelButton.addTarget(self, action: #selector(didTapCancelButton), for: .touchUpInside)
+        
+        cancelButton.translatesAutoresizingMaskIntoConstraints = false
+    }
+    
+    private func setupCreateButton() {
+        createButton.backgroundColor = .ypGray
+        createButton.layer.masksToBounds = true
+        createButton.layer.cornerRadius = 16
+        createButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+        createButton.isEnabled = false
+        
+        createButton.setTitle("Создать", for: .normal)
+        createButton.setTitleColor(.ypWhiteDay, for: .normal)
+        
+        createButton.translatesAutoresizingMaskIntoConstraints = false
+        createButton.addTarget(self, action: #selector(didTapCreateButton), for: .touchUpInside)
     }
     
     private func updateScheduleSubtitle() {
@@ -175,11 +247,11 @@ final class CreateHabitViewController: UIViewController {
         titleLabel.textColor = .ypBlackDay
         titleLabel.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(titleLabel)
+        contentView.addSubview(titleLabel)
         
         NSLayoutConstraint.activate([
-            titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 30)
+            titleLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 30)
         ])
     }
     
@@ -199,12 +271,12 @@ final class CreateHabitViewController: UIViewController {
         textFieldOfHabitName.leftViewMode = .always
         
         textFieldOfHabitName.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(textFieldOfHabitName)
+        contentView.addSubview(textFieldOfHabitName)
         
         NSLayoutConstraint.activate([
             textFieldOfHabitName.heightAnchor.constraint(equalToConstant: 75),
-            textFieldOfHabitName.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            textFieldOfHabitName.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            textFieldOfHabitName.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            textFieldOfHabitName.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             textFieldOfHabitName.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38)
         ])
     }
@@ -220,91 +292,59 @@ final class CreateHabitViewController: UIViewController {
         tableView.layer.cornerRadius = 16
         
         tableView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(tableView)
+        contentView.addSubview(tableView)
         
         tableViewTopConstraint = tableView.topAnchor.constraint(equalTo: textFieldOfHabitName.bottomAnchor, constant: 24)
         
         NSLayoutConstraint.activate([
             tableViewTopConstraint,
-            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            tableView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            tableView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             tableView.heightAnchor.constraint(equalToConstant: 150)
         ])
     }
     
-    private func setupCancelButton() {
-        cancelButton.layer.masksToBounds = true
-        cancelButton.layer.cornerRadius = 16
-        cancelButton.layer.borderWidth = 1
-        cancelButton.layer.borderColor = UIColor.ypRed.cgColor
-        cancelButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        
-        cancelButton.setTitle("Отменить", for: .normal)
-        cancelButton.setTitleColor(.ypRed, for: .normal)
-        
-        cancelButton.addTarget(self, action: #selector(didTapCancelButton), for: .touchUpInside)
-        
-        cancelButton.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(cancelButton)
-        
-        NSLayoutConstraint.activate([
-            cancelButton.heightAnchor.constraint(equalToConstant: 60),
-            cancelButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            cancelButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -34)
-        ])
-    }
-    
-    private func setupCreateButton() {
-        createButton.backgroundColor = .ypGray
-        createButton.layer.masksToBounds = true
-        createButton.layer.cornerRadius = 16
-        createButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        createButton.isEnabled = false
-        
-        createButton.setTitle("Создать", for: .normal)
-        createButton.setTitleColor(.ypWhiteDay, for: .normal)
-        
-        createButton.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(createButton)
-        
-        createButton.addTarget(self, action: #selector(didTapCreateButton), for: .touchUpInside)
-        
-        NSLayoutConstraint.activate([
-            createButton.heightAnchor.constraint(equalToConstant: 60),
-            createButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            createButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -34)
-        ])
-    }
-    
     private func setupWarningLabel() {
-        view.addSubview(warningLabel)
+        contentView.addSubview(warningLabel)
         
         NSLayoutConstraint.activate([
             warningLabel.topAnchor.constraint(equalTo: textFieldOfHabitName.bottomAnchor, constant: 8),
-            warningLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+            warningLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor)
         ])
     }
     
-    func setupCollectionView() {
+    private func setupCollectionView() {
         collectionView.delegate = self
         collectionView.dataSource = self
+        collectionView.isScrollEnabled = false
         collectionView.register(EmojiColorCell.self, forCellWithReuseIdentifier: "EmojiColorCell")
         collectionView.register(SectionHeaderView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "SectionHeader")
         
         collectionView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(collectionView)
+        contentView.addSubview(collectionView)
         
         NSLayoutConstraint.activate([
             collectionView.topAnchor.constraint(equalTo: tableView.bottomAnchor, constant: 32),
-            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -100)
+            collectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            collectionView.heightAnchor.constraint(equalToConstant: 450)
         ])
     }
     
-    
-    
     // MARK: - Private Methods
+    private func openCategoryScreen() {
+        let categoryScreenVC = CategoryScreenViewController()
+        present(categoryScreenVC, animated: true, completion: nil)
+    }
+    
+    private func openScheduleScreen() {
+        let scheduleScreenVC = ScheduleScreenViewController()
+        scheduleScreenVC.delegate = self
+        scheduleScreenVC.selectedDays = selectedSchedule
+        present(scheduleScreenVC, animated: true, completion: nil)
+    }
+    
     private func getDefaultCategory() -> TrackerCategory {
         if let generalCategory = categories.first(where: { $0.title == "Общее" }) {
             return generalCategory
@@ -314,7 +354,7 @@ final class CreateHabitViewController: UIViewController {
     }
     
     private func updateCreateButtonState() {
-        let isFormValid = !(textFieldOfHabitName.text?.isEmpty ?? true) && !selectedSchedule.isEmpty
+        let isFormValid = !(textFieldOfHabitName.text?.isEmpty ?? true) && !selectedSchedule.isEmpty && selectedEmoji != nil && selectedColor != nil
         
         createButton.isEnabled = isFormValid
         createButton.backgroundColor = isFormValid ? .ypBlackDay : .ypGray
@@ -475,6 +515,8 @@ extension CreateHabitViewController: UICollectionViewDelegate {
         
         collectionView.reloadData()
         collectionView.selectItem(at: indexPath, animated: true, scrollPosition: [])
+        
+        updateCreateButtonState()
     }
 }
 
@@ -492,7 +534,6 @@ extension CreateHabitViewController: UICollectionViewDelegateFlowLayout {
         return 5
     }
 }
-
 
 // MARK: - UICollectionViewDataSource
 extension CreateHabitViewController: UICollectionViewDataSource {
@@ -519,11 +560,4 @@ extension CreateHabitViewController: UICollectionViewDataSource {
         
         return cell
     }
-    
-    
-}
-
-
-#Preview {
-    CreateHabitViewController()
 }

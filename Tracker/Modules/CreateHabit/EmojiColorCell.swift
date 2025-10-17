@@ -103,7 +103,7 @@ final class EmojiColorCell: UICollectionViewCell {
         
         if isSelected {
             selectionView.backgroundColor = .systemGray6
-            selectionView.layer.borderWidth = 0
+            selectionView.layer.borderWidth = 3
             selectionView.layer.borderColor = color.withAlphaComponent(0.3).cgColor
         } else {
             selectionView.backgroundColor = .clear

@@ -67,6 +67,7 @@ final class CreateHabitViewController: UIViewController {
     }()
     
     // MARK: - Private Properties
+    private var trackerStore: TrackerStore!
     private var selectedSchedule: [Weekday] = []
     var categories: [TrackerCategory] = []
     private var selectedCategory: TrackerCategory?
@@ -81,9 +82,15 @@ final class CreateHabitViewController: UIViewController {
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupTrackerStore()
         setupUI()
         self.textFieldOfHabitName.delegate = self
         updateCreateButtonState()
+    }
+    
+    // MARK: - TrackerStore Setup
+    private func setupTrackerStore() {
+        trackerStore = TrackerStore()
     }
     
     // MARK: - Actions
@@ -105,8 +112,13 @@ final class CreateHabitViewController: UIViewController {
             schedule: selectedSchedule,
             isRegular: true)
         
-        delegate?.didCreateTracker(newTracker, in: categoryToUse)
-        dismiss(animated: true)
+        do {
+            try trackerStore.addTracker(newTracker, categoryTitle: categoryToUse.title)
+            delegate?.didCreateTracker(newTracker, in: categoryToUse)
+            dismiss(animated: true)
+        } catch {
+            print("Ошибка сохранения трекера: \(error)")
+        }
     }
     
     @objc private func textFieldDidChange() {

@@ -31,6 +31,7 @@ class TrackerViewController: UIViewController {
     private var categories: [TrackerCategory] = []
     private var completedTrackers: [TrackerRecord] = []
     private var currentDate: Date
+    private var trackerStore: TrackerStore!
     
     // MARK: - Initialization
     override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?)
@@ -47,9 +48,15 @@ class TrackerViewController: UIViewController {
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupTrackerStore()
         setupUI()
-        setupTestData()
         reloadData()
+    }
+    
+    // MARK: - TrackerStore Setup
+    private func setupTrackerStore() {
+        trackerStore = TrackerStore()
+        trackerStore.delegate = self
     }
     
     // MARK: - Actions
@@ -81,17 +88,20 @@ class TrackerViewController: UIViewController {
             filterWeekday = weekdayFromCalendar - 1
         }
         
-        visibleCategories = categories.compactMap { category in
-            let trackers = category.trackers.filter { tracker in
-                let textCondition = filterText.isEmpty || tracker.title.lowercased().contains(filterText)
-                guard let schedule = tracker.schedule else { return false }
-                let weekday = Weekday(rawValue: filterWeekday) ?? .monday
-                return schedule.contains(weekday) && textCondition
-            }
-            if trackers.isEmpty {
-                return nil
-            }
-            return TrackerCategory(title: category.title, trackers: trackers)
+        let allTrackers = trackerStore.fetchTrackers()
+        
+        let filteredTrackers = allTrackers.filter { tracker in
+            let textCondition = filterText.isEmpty || tracker.title.lowercased().contains(filterText)
+            guard let schedule = tracker.schedule else { return false }
+            let weekday = Weekday(rawValue: filterWeekday) ?? .monday
+            return schedule.contains(weekday) && textCondition
+        }
+        
+        if filteredTrackers.isEmpty {
+            visibleCategories = []
+        } else {
+            let importantCategory = TrackerCategory(title: "Важное", trackers: filteredTrackers)
+            visibleCategories = [importantCategory]
         }
         
         collectionView.reloadData()
@@ -239,40 +249,6 @@ class TrackerViewController: UIViewController {
     }
     
     //MARK: - Private Methods
-    private func setupTestData() {
-        let tracker1 = Tracker(
-            id: UUID(),
-            title: "Поливать цветы",
-            color: .systemBlue,
-            emoji: "🌿",
-            schedule: [.monday, .wednesday]
-        )
-        
-        let tracker2 = Tracker(
-            id: UUID(),
-            title: "Сходить в магазин",
-            color: .systemRed,
-            emoji: "🛒",
-            schedule: [.friday, .saturday, .sunday]
-        )
-        
-        let tracker3 = Tracker(
-            id: UUID(),
-            title: "Учить iOS",
-            color: .systemRed,
-            emoji: "🍏",
-            schedule: [.monday, .tuesday, .wednesday, .friday, .saturday, .sunday]
-        )
-        
-        trackers = [tracker1, tracker2, tracker3]
-        
-        let habitCategory = TrackerCategory(title: "Важно", trackers: [tracker1])
-        let eventCategory = TrackerCategory(title: "После работы", trackers: [tracker2, tracker3])
-        
-        categories = [habitCategory, eventCategory]
-        applyDateFilter()
-    }
-    
     private func updatePlaceholderVisibility() {
         let isEmpty = visibleCategories.isEmpty
         
@@ -392,6 +368,7 @@ extension TrackerViewController: UICollectionViewDelegate {
         return UICollectionReusableView()
     }
 }
+
 // MARK: - UICollectionViewDelegateFlowLayout
 extension TrackerViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
@@ -424,6 +401,13 @@ extension TrackerViewController: CreateHabitDelegate {
             categories.append(newCategory)
         }
         
+        applyDateFilter()
+    }
+}
+
+// MARK: - TrackerStoreDelegate
+extension TrackerViewController: TrackerStoreDelegate {
+    func store(_ store: TrackerStore, didUpdate update: TrackerStoreUpdate) {
         applyDateFilter()
     }
 }

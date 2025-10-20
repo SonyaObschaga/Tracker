@@ -32,6 +32,7 @@ class TrackerViewController: UIViewController {
     private var completedTrackers: [TrackerRecord] = []
     private var currentDate: Date
     private var trackerStore: TrackerStore!
+    private var trackerRecordStore: TrackerRecordStore!
     
     // MARK: - Initialization
     override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?)
@@ -48,15 +49,26 @@ class TrackerViewController: UIViewController {
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupTrackerStore()
+        setupStores()
         setupUI()
         reloadData()
+        loadCompletedTrackers()
     }
     
     // MARK: - TrackerStore Setup
-    private func setupTrackerStore() {
+    private func setupStores() {
         trackerStore = TrackerStore()
         trackerStore.delegate = self
+        trackerRecordStore = TrackerRecordStore()
+    }
+    
+    private func loadCompletedTrackers() {
+        do {
+            completedTrackers = try trackerRecordStore.fetchRecords()
+        } catch {
+            print("Ошибка загрузки выполненных трекеров: \(error)")
+            completedTrackers = []
+        }
     }
     
     // MARK: - Actions
@@ -316,20 +328,15 @@ extension TrackerViewController: TrackerCellDelegate {
     func completeTracker(id: UUID, at indexPath: IndexPath) {
         let today = Date()
         let calendar = Calendar.current
-        if calendar.isDate(currentDate, inSameDayAs: today)
-            || currentDate < today
-        {
-            let trackerRecord = TrackerRecord(trackerId: id, date: currentDate)
-            completedTrackers.append(trackerRecord)
-            
-            if let cell = collectionView.cellForItem(at: indexPath)
-                as? TrackerCell
-            {
-                let isCompletedToday = isTrackerCompletedToday(id: id)
-                let completedDays = completedTrackers.filter {
-                    $0.trackerId == id
-                }.count
-                cell.updateButtonState(isCompletedToday: isCompletedToday, completedDays: completedDays)
+        if calendar.isDate(currentDate, inSameDayAs: today) || currentDate < today {
+            do {
+                try trackerRecordStore.addRecord(trackerId: id, date: currentDate)
+                let trackerRecord = TrackerRecord(trackerId: id, date: currentDate)
+                completedTrackers.append(trackerRecord)
+                
+                updateCellState(at: indexPath, trackerId: id)
+            } catch {
+                print("Ошибка сохранения выполнения трекера: \(error)")
             }
         }
     }
@@ -338,19 +345,24 @@ extension TrackerViewController: TrackerCellDelegate {
         let today = Date()
         let calendar = Calendar.current
         if calendar.isDate(currentDate, inSameDayAs: today) || currentDate < today {
-            completedTrackers.removeAll { trackerRecord in
-                isSameTrackerRecord(trackerRecord: trackerRecord, id: id)
+            do {
+                try trackerRecordStore.removeRecord(trackerId: id, date: currentDate)
+                completedTrackers.removeAll { trackerRecord in
+                    isSameTrackerRecord(trackerRecord: trackerRecord, id: id)
+                }
+                
+                updateCellState(at: indexPath, trackerId: id)
+            } catch {
+                print("Ошибка удаления выполнения трекера: \(error)")
             }
-            
-            if let cell = collectionView.cellForItem(at: indexPath)
-                as? TrackerCell
-            {
-                let isCompletedToday = isTrackerCompletedToday(id: id)
-                let completedDays = completedTrackers.filter {
-                    $0.trackerId == id
-                }.count
-                cell.updateButtonState(isCompletedToday: isCompletedToday, completedDays: completedDays)
-            }
+        }
+    }
+    
+    private func updateCellState(at indexPath: IndexPath, trackerId: UUID) {
+        if let cell = collectionView.cellForItem(at: indexPath) as? TrackerCell {
+            let isCompletedToday = isTrackerCompletedToday(id: trackerId)
+            let completedDays = completedTrackers.filter { $0.trackerId == trackerId }.count
+            cell.updateButtonState(isCompletedToday: isCompletedToday, completedDays: completedDays)
         }
     }
 }

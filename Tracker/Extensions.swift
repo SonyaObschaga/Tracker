@@ -1,6 +1,5 @@
 import UIKit
 
-// MARK: - UIColor Serialization (для String)
 extension UIColor {
     func toString() -> String? {
         let marshalling = UIColorMarshalling()
@@ -13,7 +12,6 @@ extension UIColor {
     }
 }
 
-// MARK: - Weekday Array Serialization (для Binary Data)
 extension Array where Element == Weekday {
     func toData() -> Data? {
         let rawValues = self.map { $0.rawValue }
@@ -23,5 +21,15 @@ extension Array where Element == Weekday {
     static func fromData(_ data: Data) -> [Weekday]? {
         guard let rawValues = try? JSONDecoder().decode([Int].self, from: data) else { return nil }
         return rawValues.compactMap { Weekday(rawValue: $0) }
+    }
+}
+
+extension Date {
+    var startOfDay: Date {
+        return Calendar.current.startOfDay(for: self)
+    }
+    
+    var nextDay: Date {
+        return Calendar.current.date(byAdding: .day, value: 1, to: startOfDay)!
     }
 }

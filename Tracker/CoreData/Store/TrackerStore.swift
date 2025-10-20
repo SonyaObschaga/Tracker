@@ -30,15 +30,23 @@ final class TrackerStore: NSObject {
     private var movedIndexes: Set<TrackerStoreUpdate.Move>?
     
     
-    convenience override init() {
-        let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-        try! self.init(context: context)
+    override init() {
+        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
+            fatalError("AppDelegate not found")
+        }
+        let context = appDelegate.persistentContainer.viewContext
+        self.context = context
+        super.init()
+        setupFetchedResultsController()
     }
     
-    init(context: NSManagedObjectContext) throws {
+    init(context: NSManagedObjectContext) {
         self.context = context
-        super.init( )
-        
+        super.init()
+        setupFetchedResultsController()
+    }
+    
+    private func setupFetchedResultsController() {
         let fetchRequest = TrackerCoreData.fetchRequest()
         fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \TrackerCoreData.emoji, ascending: true)]
         
@@ -50,7 +58,12 @@ final class TrackerStore: NSObject {
         )
         controller.delegate = self
         self.fetchedResultsController = controller
-        try controller.performFetch()
+        
+        do {
+            try controller.performFetch()
+        } catch {
+            print("Failed to perform fetch: \(error)")
+        }
     }
 }
 

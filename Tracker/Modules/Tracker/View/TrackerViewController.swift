@@ -33,6 +33,7 @@ class TrackerViewController: UIViewController {
     private var currentDate: Date
     private var trackerStore: TrackerStore!
     private var trackerRecordStore: TrackerRecordStore!
+    private var trackerCategoryStore: TrackerCategoryStore!
     
     // MARK: - Initialization
     override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?)
@@ -60,6 +61,7 @@ class TrackerViewController: UIViewController {
         trackerStore = TrackerStore()
         trackerStore.delegate = self
         trackerRecordStore = TrackerRecordStore()
+        trackerCategoryStore = TrackerCategoryStore()
     }
     
     private func loadCompletedTrackers() {
@@ -93,27 +95,19 @@ class TrackerViewController: UIViewController {
         let filterText = (searchBar.text ?? "").lowercased()
         let calendar = Calendar.current
         let weekdayFromCalendar = calendar.component(.weekday, from: currentDate)
-        let filterWeekday: Int
-        if weekdayFromCalendar == 1 {
-            filterWeekday = 7
-        } else {
-            filterWeekday = weekdayFromCalendar - 1
-        }
+        let filterWeekday: Int = weekdayFromCalendar == 1 ? 7 : weekdayFromCalendar - 1
         
-        let allTrackers = trackerStore.fetchTrackers()
+        let allCategories = trackerCategoryStore.fetchCategories()
         
-        let filteredTrackers = allTrackers.filter { tracker in
-            let textCondition = filterText.isEmpty || tracker.title.lowercased().contains(filterText)
-            guard let schedule = tracker.schedule else { return false }
-            let weekday = Weekday(rawValue: filterWeekday) ?? .monday
-            return schedule.contains(weekday) && textCondition
-        }
-        
-        if filteredTrackers.isEmpty {
-            visibleCategories = []
-        } else {
-            let importantCategory = TrackerCategory(title: "Важное", trackers: filteredTrackers)
-            visibleCategories = [importantCategory]
+        visibleCategories = allCategories.compactMap { category in
+            let filteredTrackers = category.trackers.filter { tracker in
+                let textCondition = filterText.isEmpty || tracker.title.lowercased().contains(filterText)
+                guard let schedule = tracker.schedule else { return false }
+                let weekday = Weekday(rawValue: filterWeekday) ?? .monday
+                return schedule.contains(weekday) && textCondition
+            }
+            
+            return filteredTrackers.isEmpty ? nil : TrackerCategory(title: category.title, trackers: filteredTrackers)
         }
         
         collectionView.reloadData()

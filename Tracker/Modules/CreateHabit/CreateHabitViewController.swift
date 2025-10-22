@@ -16,7 +16,7 @@ final class CreateHabitViewController: UIViewController {
     private let cancelButton = UIButton()
     private let createButton = UIButton()
     private let tableView = UITableView()
-    private var tableViewTopConstraint: NSLayoutConstraint!
+    private var tableViewTopConstraint: NSLayoutConstraint?
     private let emojies = [
         "❤️", "🍏", "🧊", "💭", "💕", "😍", "🔎", "😎", "💍",
         "🚗", "⛔️", "🇷🇺", "🐸", "🐻", "🐶", "🐱", "🐭", "🐹"
@@ -67,8 +67,8 @@ final class CreateHabitViewController: UIViewController {
     }()
     
     // MARK: - Private Properties
-    private var trackerStore: TrackerStore!
-    private var trackerCategoryStore: TrackerCategoryStore!
+    private var trackerStore: TrackerStore?
+    private var trackerCategoryStore: TrackerCategoryStore?
     private var selectedSchedule: [Weekday] = []
     var categories: [TrackerCategory] = []
     private var selectedCategory: TrackerCategory?
@@ -115,7 +115,7 @@ final class CreateHabitViewController: UIViewController {
             isRegular: true)
         
         do {
-            try trackerCategoryStore.addTracker(newTracker, toCategory: categoryToUse.title)
+            try trackerCategoryStore?.addTracker(newTracker, toCategory: categoryToUse.title)
             delegate?.didCreateTracker(newTracker, in: categoryToUse)
             dismiss(animated: true)
         } catch {
@@ -309,9 +309,9 @@ final class CreateHabitViewController: UIViewController {
         contentView.addSubview(tableView)
         
         tableViewTopConstraint = tableView.topAnchor.constraint(equalTo: textFieldOfHabitName.bottomAnchor, constant: 24)
+        tableViewTopConstraint?.isActive = true
         
         NSLayoutConstraint.activate([
-            tableViewTopConstraint,
             tableView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             tableView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             tableView.heightAnchor.constraint(equalToConstant: 150)
@@ -381,9 +381,9 @@ final class CreateHabitViewController: UIViewController {
         warningLabel.alpha = 0
         
         UIView.animate(withDuration: 0.3) {
-            self.tableViewTopConstraint.isActive = false
+            self.tableViewTopConstraint?.isActive = false
             self.tableViewTopConstraint = self.tableView.topAnchor.constraint(equalTo: self.warningLabel.bottomAnchor, constant: 32)
-            self.tableViewTopConstraint.isActive = true
+            self.tableViewTopConstraint?.isActive = true
             
             self.warningLabel.alpha = 1
             self.view.layoutIfNeeded()
@@ -394,9 +394,9 @@ final class CreateHabitViewController: UIViewController {
         guard !warningLabel.isHidden else { return }
         
         UIView.animate(withDuration: 0.3) {
-            self.tableViewTopConstraint.isActive = false
+            self.tableViewTopConstraint?.isActive = false
             self.tableViewTopConstraint = self.tableView.topAnchor.constraint(equalTo: self.textFieldOfHabitName.bottomAnchor, constant: 24)
-            self.tableViewTopConstraint.isActive = true
+            self.tableViewTopConstraint?.isActive = true
             
             self.warningLabel.alpha = 0
             self.view.layoutIfNeeded()
@@ -505,19 +505,22 @@ extension CreateHabitViewController: ScheduleDelegate {
 // MARK: - UICollectionViewDelegate
 extension CreateHabitViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
-        if kind == UICollectionView.elementKindSectionHeader {
-            let headerView = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "SectionHeader", for: indexPath) as! SectionHeaderView
-            
-            if indexPath.section == 0 {
-                headerView.configure(with: "Emoji")
-            } else {
-                headerView.configure(with: "Цвет")
-            }
-            
-            return headerView
+        guard kind == UICollectionView.elementKindSectionHeader,
+              let headerView = collectionView.dequeueReusableSupplementaryView(
+                ofKind: kind,
+                withReuseIdentifier: "SectionHeader",
+                for: indexPath
+              ) as? SectionHeaderView else {
+            return UICollectionReusableView()
         }
         
-        return UICollectionReusableView()
+        if indexPath.section == 0 {
+            headerView.configure(with: "Emoji")
+        } else {
+            headerView.configure(with: "Цвет")
+        }
+        
+        return headerView
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -560,7 +563,12 @@ extension CreateHabitViewController: UICollectionViewDataSource {
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "EmojiColorCell", for: indexPath) as! EmojiColorCell
+        guard let cell = collectionView.dequeueReusableCell(
+            withReuseIdentifier: "EmojiColorCell",
+            for: indexPath
+        ) as? EmojiColorCell else {
+            return UICollectionViewCell()
+        }
         
         if indexPath.section == 0 {
             let emoji = emojies[indexPath.item]

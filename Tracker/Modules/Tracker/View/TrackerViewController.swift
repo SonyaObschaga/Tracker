@@ -31,9 +31,9 @@ class TrackerViewController: UIViewController {
     private var categories: [TrackerCategory] = []
     private var completedTrackers: [TrackerRecord] = []
     private var currentDate: Date
-    private var trackerStore: TrackerStore!
-    private var trackerRecordStore: TrackerRecordStore!
-    private var trackerCategoryStore: TrackerCategoryStore!
+    private var trackerStore: TrackerStore?
+    private var trackerRecordStore: TrackerRecordStore?
+    private var trackerCategoryStore: TrackerCategoryStore?
     
     // MARK: - Initialization
     override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?)
@@ -59,18 +59,13 @@ class TrackerViewController: UIViewController {
     // MARK: - TrackerStore Setup
     private func setupStores() {
         trackerStore = TrackerStore()
-        trackerStore.delegate = self
+        trackerStore?.delegate = self
         trackerRecordStore = TrackerRecordStore()
         trackerCategoryStore = TrackerCategoryStore()
     }
     
     private func loadCompletedTrackers() {
-        do {
-            completedTrackers = try trackerRecordStore.fetchRecords()
-        } catch {
-            print("Ошибка загрузки выполненных трекеров: \(error)")
-            completedTrackers = []
-        }
+        completedTrackers = (try? trackerRecordStore?.fetchRecords()) ?? []
     }
     
     // MARK: - Actions
@@ -97,7 +92,12 @@ class TrackerViewController: UIViewController {
         let weekdayFromCalendar = calendar.component(.weekday, from: currentDate)
         let filterWeekday: Int = weekdayFromCalendar == 1 ? 7 : weekdayFromCalendar - 1
         
-        let allCategories = trackerCategoryStore.fetchCategories()
+        guard let allCategories = trackerCategoryStore?.fetchCategories() else {
+            visibleCategories = []
+            collectionView.reloadData()
+            updatePlaceholderVisibility()
+            return
+        }
         
         visibleCategories = allCategories.compactMap { category in
             let filteredTrackers = category.trackers.filter { tracker in
@@ -283,7 +283,10 @@ extension TrackerViewController: UICollectionViewDataSource {
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "TrackerCell", for: indexPath) as! TrackerCell
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "TrackerCell", for: indexPath) as? TrackerCell else {
+            return UICollectionViewCell()
+        }
+        
         let category = visibleCategories[indexPath.section]
         let tracker = category.trackers[indexPath.item]
         cell.delegate = self
@@ -324,7 +327,7 @@ extension TrackerViewController: TrackerCellDelegate {
         let calendar = Calendar.current
         if calendar.isDate(currentDate, inSameDayAs: today) || currentDate < today {
             do {
-                try trackerRecordStore.addRecord(trackerId: id, date: currentDate)
+                try trackerRecordStore?.addRecord(trackerId: id, date: currentDate)
                 let trackerRecord = TrackerRecord(trackerId: id, date: currentDate)
                 completedTrackers.append(trackerRecord)
                 
@@ -340,7 +343,7 @@ extension TrackerViewController: TrackerCellDelegate {
         let calendar = Calendar.current
         if calendar.isDate(currentDate, inSameDayAs: today) || currentDate < today {
             do {
-                try trackerRecordStore.removeRecord(trackerId: id, date: currentDate)
+                try trackerRecordStore?.removeRecord(trackerId: id, date: currentDate)
                 completedTrackers.removeAll { trackerRecord in
                     isSameTrackerRecord(trackerRecord: trackerRecord, id: id)
                 }
@@ -365,7 +368,9 @@ extension TrackerViewController: TrackerCellDelegate {
 extension TrackerViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         if kind == UICollectionView.elementKindSectionHeader {
-            let headerView = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "SectionHeader", for: indexPath) as! SectionHeaderView
+            guard let headerView = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "SectionHeader", for: indexPath) as? SectionHeaderView else {
+                return UICollectionReusableView()
+            }
             
             let category = visibleCategories[indexPath.section]
             headerView.configure(with: category.title)

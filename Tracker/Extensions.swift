@@ -30,6 +30,10 @@ extension Date {
     }
     
     var nextDay: Date {
-        return Calendar.current.date(byAdding: .day, value: 1, to: startOfDay)!
+        guard let nextDate = Calendar.current.date(byAdding: .day, value: 1, to: startOfDay) else {
+            assertionFailure("Failed to calculate next day")
+            return startOfDay
+        }
+        return nextDate
     }
 }

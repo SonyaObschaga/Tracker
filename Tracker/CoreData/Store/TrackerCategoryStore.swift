@@ -6,7 +6,9 @@ final class TrackerCategoryStore {
     
     init() {
         guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
-            fatalError("AppDelegate not found")
+            assertionFailure("AppDelegate not found")
+            self.context = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
+            return
         }
         self.context = appDelegate.persistentContainer.viewContext
     }

@@ -21,7 +21,7 @@ protocol TrackerStoreDelegate: AnyObject {
 
 final class TrackerStore: NSObject {
     private let context: NSManagedObjectContext
-    private var fetchedResultsController: NSFetchedResultsController<TrackerCoreData>!
+    private var fetchedResultsController: NSFetchedResultsController<TrackerCoreData>?
     
     weak var delegate: TrackerStoreDelegate?
     private var insertedIndexes: IndexSet?
@@ -32,7 +32,11 @@ final class TrackerStore: NSObject {
     
     override init() {
         guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
-            fatalError("AppDelegate not found")
+            assertionFailure("AppDelegate not found")
+            self.context = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
+            super.init()
+            setupFetchedResultsController()
+            return
         }
         let context = appDelegate.persistentContainer.viewContext
         self.context = context
@@ -69,6 +73,8 @@ final class TrackerStore: NSObject {
 
 extension TrackerStore: NSFetchedResultsControllerDelegate {
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<any NSFetchRequestResult>) {
+        guard controller == fetchedResultsController else { return }
+        
         insertedIndexes = IndexSet()
         deletedIndexes = IndexSet()
         updatedIndexes = IndexSet()
@@ -79,10 +85,10 @@ extension TrackerStore: NSFetchedResultsControllerDelegate {
         delegate?.store(
             self,
             didUpdate: TrackerStoreUpdate(
-                insertedIndexes: insertedIndexes!,
-                deletedIndexes: deletedIndexes!,
-                updatedIndexes: updatedIndexes!,
-                movedIndexes: movedIndexes!
+                insertedIndexes: insertedIndexes ?? IndexSet(),
+                deletedIndexes: deletedIndexes ?? IndexSet(),
+                updatedIndexes: updatedIndexes ?? IndexSet(),
+                movedIndexes: movedIndexes ?? Set()
             )
         )
         insertedIndexes = nil
@@ -100,19 +106,32 @@ extension TrackerStore: NSFetchedResultsControllerDelegate {
     ) {
         switch type {
         case .insert:
-            guard let indexPath = newIndexPath else { fatalError() }
+            guard let indexPath = newIndexPath else {
+                assertionFailure("indexPath is nil for insert")
+                return
+            }
             insertedIndexes?.insert(indexPath.item)
         case .delete:
-            guard let indexPath = indexPath else { fatalError() }
+            guard let indexPath = indexPath else {
+                assertionFailure("indexPath is nil for delete")
+               return
+            }
             deletedIndexes?.insert(indexPath.item)
         case .update:
-            guard let indexPath = indexPath else { fatalError() }
+            guard let indexPath = indexPath else {
+                assertionFailure("indexPath is nil for update")
+            return
+            }
             updatedIndexes?.insert(indexPath.item)
         case .move:
-            guard let oldIndexPath = indexPath, let newIndexPath = newIndexPath else { fatalError() }
+            guard let oldIndexPath = indexPath, let newIndexPath = newIndexPath else {
+                assertionFailure("indexPath or newIndexPath is nil for move")
+                return
+            }
             movedIndexes?.insert(.init(oldIndex: oldIndexPath.item, newIndex: newIndexPath.item))
         @unknown default:
-            fatalError()
+            assertionFailure("Unknown NSFetchedResultsChangeType encountered")
+            return
         }
     }
 }

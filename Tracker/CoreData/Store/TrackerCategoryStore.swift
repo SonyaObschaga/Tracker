@@ -5,12 +5,12 @@ final class TrackerCategoryStore {
     private let context: NSManagedObjectContext
     
     init() {
-        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
+        guard UIApplication.shared.delegate is AppDelegate else {
             assertionFailure("AppDelegate not found")
             self.context = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
             return
         }
-        self.context = appDelegate.persistentContainer.viewContext
+        self.context = DataBaseStore.shared.persistentContainer.viewContext
     }
     
     init(context: NSManagedObjectContext) {

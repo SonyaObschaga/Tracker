@@ -30,15 +30,16 @@ final class TrackerStore: NSObject {
     private var movedIndexes: Set<TrackerStoreUpdate.Move>?
     
     
+    
     override init() {
-        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
+        guard UIApplication.shared.delegate is AppDelegate else {
             assertionFailure("AppDelegate not found")
             self.context = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
             super.init()
             setupFetchedResultsController()
             return
         }
-        let context = appDelegate.persistentContainer.viewContext
+        let context = DataBaseStore.shared.persistentContainer.viewContext
         self.context = context
         super.init()
         setupFetchedResultsController()

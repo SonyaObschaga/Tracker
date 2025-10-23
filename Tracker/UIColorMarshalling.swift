@@ -1,7 +1,7 @@
 import UIKit
 
 final class UIColorMarshalling {
-    func hexString(from color: UIColor) -> String {
+    static func hexString(from color: UIColor) -> String {
         guard let components = color.cgColor.components, components.count >= 3 else {
             return "000000"
         }
@@ -18,7 +18,7 @@ final class UIColorMarshalling {
         )
     }
     
-    func color(from hex: String) -> UIColor {
+    static func color(from hex: String) -> UIColor {
         var rgbValue: UInt64 = 0
         Scanner(string: hex).scanHexInt64(&rgbValue)
         

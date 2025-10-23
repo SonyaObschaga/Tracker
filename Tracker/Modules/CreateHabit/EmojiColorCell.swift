@@ -86,15 +86,9 @@ final class EmojiColorCell: UICollectionViewCell {
         emojiLabel.isHidden = false
         colorView.isHidden = true
         
-        if isSelected {
-            selectionView.backgroundColor = .systemGray6
-            selectionView.layer.borderWidth = 0
-            selectionView.layer.borderColor = UIColor.clear.cgColor
-        } else {
-            selectionView.backgroundColor = .clear
-            selectionView.layer.borderWidth = 0
-            selectionView.layer.borderColor = UIColor.clear.cgColor
-        }
+        selectionView.backgroundColor = isSelected ? .systemGray6 : .clear
+        selectionView.layer.borderWidth = 0
+        selectionView.layer.borderColor = UIColor.clear.cgColor
     }
     
     func configureColor(with color: UIColor, isSelected: Bool) {
@@ -102,15 +96,9 @@ final class EmojiColorCell: UICollectionViewCell {
         colorView.isHidden = false
         emojiLabel.isHidden = true
         
-        if isSelected {
-            selectionView.backgroundColor = .systemGray6
-            selectionView.layer.borderWidth = 3
-            selectionView.layer.borderColor = color.withAlphaComponent(0.3).cgColor
-        } else {
-            selectionView.backgroundColor = .clear
-            selectionView.layer.borderWidth = 0
-            selectionView.layer.borderColor = UIColor.clear.cgColor
-        }
+        selectionView.backgroundColor = isSelected ? .systemGray6 : .clear
+        selectionView.layer.borderWidth = isSelected ? 3 : 0
+        selectionView.layer.borderColor = isSelected ? color.withAlphaComponent(0.3).cgColor : UIColor.clear.cgColor
     }
 }
 

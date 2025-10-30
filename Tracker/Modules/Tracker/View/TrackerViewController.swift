@@ -208,7 +208,7 @@ class TrackerViewController: UIViewController {
         placeholderStackView.translatesAutoresizingMaskIntoConstraints = false
         placeholderStackView.axis = .vertical
         placeholderStackView.alignment = .center
-        placeholderStackView.spacing = 16
+        placeholderStackView.spacing = 8
         
         let placeholderImage = UIImageView(image: UIImage(named: "dizzy"))
         placeholderImage.contentMode = .scaleAspectFit
@@ -222,7 +222,7 @@ class TrackerViewController: UIViewController {
         let placeholderLabel = UILabel()
         placeholderLabel.text = "Что будем отслеживать?"
         placeholderLabel.textAlignment = .center
-        placeholderLabel.font = UIFont.systemFont(ofSize: 17)
+        placeholderLabel.font = UIFont.systemFont(ofSize: 12, weight: .medium)
         placeholderLabel.textColor = .label
         
         placeholderStackView.addArrangedSubview(placeholderImage)

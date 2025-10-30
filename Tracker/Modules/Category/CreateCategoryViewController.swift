@@ -1,10 +1,15 @@
 import UIKit
 
+protocol CreateCategoryViewControllerDelegate: AnyObject {
+    func didCreateCategory(_ category: TrackerCategory)
+}
+
 // MARK: - CreateCategoryViewController
 final class CreateCategoryViewController: UIViewController {
     
     // MARK: - Properties
-    
+    weak var delegate: CreateCategoryViewControllerDelegate?
+
     //MARK: - UI Elements
     private let titleLabel = UILabel()
     private let textFieldOfCategoryName = UITextField()
@@ -25,7 +30,9 @@ final class CreateCategoryViewController: UIViewController {
     }
     
     @objc private func didTapDoneButton() {
-        
+        guard let categoryName = textFieldOfCategoryName.text, !categoryName.isEmpty else { return }
+        let newCategory = TrackerCategory(title: categoryName, trackers: [])
+        delegate?.didCreateCategory(newCategory)
         
         dismiss(animated: true, completion: nil)
     }
@@ -111,6 +118,3 @@ final class CreateCategoryViewController: UIViewController {
     }
 }
 
-#Preview {
-    CreateCategoryViewController()
-}

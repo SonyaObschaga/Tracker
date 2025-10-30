@@ -30,6 +30,8 @@ final class CreateCategoryViewController: UIViewController {
     }
     
     @objc private func didTapDoneButton() {
+        let createCategoryVC = CreateCategoryViewController()
+        createCategoryVC.delegate = self
         guard let categoryName = textFieldOfCategoryName.text, !categoryName.isEmpty else { return }
         let newCategory = TrackerCategory(title: categoryName, trackers: [])
         delegate?.didCreateCategory(newCategory)

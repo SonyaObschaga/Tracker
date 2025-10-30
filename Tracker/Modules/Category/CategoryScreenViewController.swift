@@ -16,6 +16,7 @@ final class CategoryScreenViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        updatePlaceholderVisibility()
     }
     
     // MARK: - Actions
@@ -122,15 +123,15 @@ final class CategoryScreenViewController: UIViewController {
         ])
     }
     
-    // MARK: - Public Methods
-//    func didCreateCategory(_ category: TrackerCategory) {
-//        categories.append(category)
-//        tableView.isHidden = categories.isEmpty
-//        placeholderStackView.isHidden = !categories.isEmpty
-//        tableView.reloadData()
-//    }
+    // MARK: - Private Methods
+    private func updatePlaceholderVisibility() {
+        let isEmpty = categories.isEmpty
+        placeholderStackView.isHidden = !isEmpty
+        tableView.isHidden = isEmpty
+        tableView.reloadData()
+        updatePlaceholderVisibility()
+    }
 }
-
 
 extension CategoryScreenViewController: CreateCategoryViewControllerDelegate {
     func didCreateCategory(_ category: TrackerCategory) {

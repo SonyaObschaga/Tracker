@@ -4,14 +4,14 @@ import UIKit
 final class CategoryScreenViewController: UIViewController {
     
     // MARK: - Properties
-        private var categories: [TrackerCategory] = []
+    private var categories: [TrackerCategory] = []
     
     // MARK: - UI Elements
     private let titleLabel = UILabel()
     private let placeholderStackView = UIStackView()
     private let addButton = UIButton()
     private let tableView = UITableView()
-
+    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -36,22 +36,22 @@ final class CategoryScreenViewController: UIViewController {
     private func setupTableView() {
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Category Cell")
         tableView.dataSource = self
-        tableView.delegate = self
         tableView.isScrollEnabled = false
         tableView.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
         tableView.backgroundColor = .ypBackgroundDay
         tableView.layer.masksToBounds = true
         tableView.layer.cornerRadius = 16
-
+        
         tableView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(tableView)
-
+        
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
         ])
-
+    }
+    
     private func setupTitleLabel() {
         titleLabel.text = "Категория"
         titleLabel.textAlignment = .center
@@ -121,18 +121,23 @@ final class CategoryScreenViewController: UIViewController {
             addButton.heightAnchor.constraint(equalToConstant: 60)
         ])
     }
-
-// MARK: - Private Methods
-private func didCreateCategory(_ category: TrackerCategory) {
-    categories.append(category)
-    tableView.isHidden = categories.isEmpty
-    placeholderStackView.isHidden = !categories.isEmpty
-    tableView.reloadData()
+    
+    // MARK: - Public Methods
+//    func didCreateCategory(_ category: TrackerCategory) {
+//        categories.append(category)
+//        tableView.isHidden = categories.isEmpty
+//        placeholderStackView.isHidden = !categories.isEmpty
+//        tableView.reloadData()
+//    }
 }
+
 
 extension CategoryScreenViewController: CreateCategoryViewControllerDelegate {
     func didCreateCategory(_ category: TrackerCategory) {
         categories.append(category)
+        tableView.isHidden = categories.isEmpty
+        placeholderStackView.isHidden = !categories.isEmpty
+        tableView.reloadData()
     }
 }
 

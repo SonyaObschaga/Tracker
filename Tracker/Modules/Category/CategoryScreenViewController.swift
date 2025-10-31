@@ -5,7 +5,6 @@ final class CategoryScreenViewController: UIViewController {
     
     // MARK: - Properties
     private var categories: [TrackerCategory] = []
-    weak var delegate: CreateCategoryViewControllerDelegate?
     
     // MARK: - UI Elements
     private let titleLabel = UILabel()
@@ -42,7 +41,6 @@ final class CategoryScreenViewController: UIViewController {
         tableView.delegate = self
         tableView.isScrollEnabled = false
         tableView.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
-        tableView.backgroundColor = .ypBackgroundDay
         tableView.layer.masksToBounds = true
         tableView.layer.cornerRadius = 16
         
@@ -53,7 +51,7 @@ final class CategoryScreenViewController: UIViewController {
             tableView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            tableView.bottomAnchor.constraint(equalTo: addButton.topAnchor, constant: -20)
+            tableView.heightAnchor.constraint(equalToConstant: 0)
         ])
     }
     
@@ -134,6 +132,32 @@ final class CategoryScreenViewController: UIViewController {
         tableView.isHidden = isEmpty
         tableView.reloadData()
     }
+    
+    private func updateTableViewHeight() {
+        let rowHeight: CGFloat = 75
+        let numberOfRows = categories.count
+        let totalHeight = CGFloat(numberOfRows) * rowHeight
+        
+        if let heightConstraint = tableView.constraints.first(where: { $0.firstAttribute == .height }) {
+            heightConstraint.constant = totalHeight
+        }
+        
+        UIView.animate(withDuration: 0.3) {
+            self.view.layoutIfNeeded()
+        }
+    }
+    
+    private func updateAllCellSeparators() {
+        for visibleCell in tableView.visibleCells {
+            if let indexPath = tableView.indexPath(for: visibleCell) {
+                if indexPath.row == categories.count - 1 {
+                    visibleCell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: .greatestFiniteMagnitude)
+                } else {
+                    visibleCell.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+                }
+            }
+        }
+    }
 }
 
 extension CategoryScreenViewController: CreateCategoryViewControllerDelegate {
@@ -142,6 +166,8 @@ extension CategoryScreenViewController: CreateCategoryViewControllerDelegate {
         tableView.isHidden = categories.isEmpty
         placeholderStackView.isHidden = !categories.isEmpty
         tableView.reloadData()
+        updateTableViewHeight()
+        updateAllCellSeparators()
     }
 }
 
@@ -159,12 +185,12 @@ extension CategoryScreenViewController: UITableViewDataSource {
     }
 }
 
- extension CategoryScreenViewController: UITableViewDelegate {
-     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-         tableView.deselectRow(at: indexPath, animated: true)
-     }
-     
-     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-         return 75
-     }
- }
+extension CategoryScreenViewController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 75
+    }
+}

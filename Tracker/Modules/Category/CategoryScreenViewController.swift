@@ -5,6 +5,7 @@ final class CategoryScreenViewController: UIViewController {
     
     // MARK: - Properties
     private var categories: [TrackerCategory] = []
+    weak var delegate: CreateCategoryViewControllerDelegate?
     
     // MARK: - UI Elements
     private let titleLabel = UILabel()
@@ -22,6 +23,7 @@ final class CategoryScreenViewController: UIViewController {
     // MARK: - Actions
     @objc private func didTapAddButton() {
         let createCategoryVC = CreateCategoryViewController()
+        createCategoryVC.delegate = self
         present(createCategoryVC, animated: true)
     }
     
@@ -30,13 +32,14 @@ final class CategoryScreenViewController: UIViewController {
         view.backgroundColor = .systemBackground
         setupTitleLabel()
         setupPlaceholderStackView()
-        setupTableView()
         setupAddButton()
+        setupTableView()
     }
     
     private func setupTableView() {
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Category Cell")
         tableView.dataSource = self
+        tableView.delegate = self
         tableView.isScrollEnabled = false
         tableView.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
         tableView.backgroundColor = .ypBackgroundDay
@@ -49,7 +52,8 @@ final class CategoryScreenViewController: UIViewController {
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            tableView.bottomAnchor.constraint(equalTo: addButton.topAnchor, constant: -20)
         ])
     }
     
@@ -129,7 +133,6 @@ final class CategoryScreenViewController: UIViewController {
         placeholderStackView.isHidden = !isEmpty
         tableView.isHidden = isEmpty
         tableView.reloadData()
-        updatePlaceholderVisibility()
     }
 }
 
@@ -151,14 +154,17 @@ extension CategoryScreenViewController: UITableViewDataSource {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Category Cell", for: indexPath)
         let category = categories[indexPath.row]
         cell.textLabel?.text = category.title
+        cell.backgroundColor = .ypBackgroundDay
         return cell
     }
 }
 
-// extension CategoryScreenViewController: UITableViewDelegate {
-//     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-//         tableView.deselectRow(at: indexPath, animated: true)
-//         let category = categories[indexPath.row]
-//         delegate?.didSelectCategory(category)
-//     }
-// }
+ extension CategoryScreenViewController: UITableViewDelegate {
+     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+         tableView.deselectRow(at: indexPath, animated: true)
+     }
+     
+     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+         return 75
+     }
+ }

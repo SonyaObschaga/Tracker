@@ -5,6 +5,8 @@ final class CategoryScreenViewController: UIViewController {
     
     // MARK: - Properties
     private var categories: [TrackerCategory] = []
+    private var selectedCategory: TrackerCategory?
+    private var previouslySelectedIndexPath: IndexPath?
     
     // MARK: - UI Elements
     private let titleLabel = UILabel()
@@ -181,6 +183,10 @@ extension CategoryScreenViewController: UITableViewDataSource {
         let category = categories[indexPath.row]
         cell.textLabel?.text = category.title
         cell.backgroundColor = .ypBackgroundDay
+        
+        let isSelected = selectedCategory?.title == category.title
+        cell.accessoryType = isSelected ? .checkmark : .none
+        
         return cell
     }
 }
@@ -188,6 +194,17 @@ extension CategoryScreenViewController: UITableViewDataSource {
 extension CategoryScreenViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
+        
+        var indexPathsToReload = [indexPath]
+        
+        if let previousIndexPath = previouslySelectedIndexPath {
+            indexPathsToReload.append(previousIndexPath)
+        }
+        
+        selectedCategory = categories[indexPath.row]
+        previouslySelectedIndexPath = indexPath
+        
+        tableView.reloadRows(at: indexPathsToReload, with: .none)
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {

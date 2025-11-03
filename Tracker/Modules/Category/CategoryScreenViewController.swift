@@ -144,7 +144,7 @@ final class CategoryScreenViewController: UIViewController {
             heightConstraint.constant = totalHeight
         }
         
-        UIView.animate(withDuration: 0.3) {
+        UIView.animate(withDuration: 0.1) {
             self.view.layoutIfNeeded()
         }
     }
@@ -161,6 +161,7 @@ final class CategoryScreenViewController: UIViewController {
         }
     }
     
+    // MARK: - Context Menu
     private func editCategory(at indexPath: IndexPath) {
         let categoryToEdit = categories[indexPath.row]
         let editVC = EditCategoryViewController()
@@ -170,14 +171,64 @@ final class CategoryScreenViewController: UIViewController {
     }
     
     private func deleteCategory(at indexPath: IndexPath) {
-        categories.remove(at: indexPath.row)
+        let categoryToDelete = categories[indexPath.row]
         
-        if let selected = selectedCategory, selected.title == categories[indexPath.row].title {
+        let alert = UIAlertController(
+            title: "Эта категория точно не нужна?",
+            message: nil,
+            preferredStyle: .actionSheet
+        )
+        
+        let deleteAction = UIAlertAction(title: "Удалить?", style: .destructive) { [weak self] _ in
+            self?.performDeleteCategory(at: indexPath, categoryToDelete: categoryToDelete)
+        }
+        
+        let cancelAction = UIAlertAction(title: "Отменить", style: .cancel)
+        
+        alert.addAction(deleteAction)
+        alert.addAction(cancelAction)
+        
+        present(alert, animated: true)
+    }
+    
+    private func createContextMenu(for indexPath: IndexPath) -> UIMenu {
+        let editAction = UIAction(
+            title: "Редактировать",
+            image: nil
+        ) { [weak self] _ in
+            self?.editCategory(at: indexPath)
+        }
+        
+        let deleteAction = UIAction(
+            title: "Удалить",
+            image: nil,
+            attributes: .destructive
+        ) { [weak self] _ in
+            self?.deleteCategory(at: indexPath)
+        }
+        
+        return UIMenu(title: "", children: [editAction, deleteAction])
+    }
+    
+    private func performDeleteCategory(at indexPath: IndexPath, categoryToDelete: TrackerCategory) {
+        categories.remove(at: indexPath.row)
+        let wasSelectedCategory = selectedCategory?.title == categoryToDelete.title
+        
+        if wasSelectedCategory {
             selectedCategory = nil
             previouslySelectedIndexPath = nil
         }
         
-        tableView.deleteRows(at: [indexPath], with: .automatic)
+        if categories.isEmpty {
+            updateUIAfterCategoryChange()
+        } else {
+            tableView.deleteRows(at: [indexPath], with: .automatic)
+            updateTableViewHeight()
+            updateAllCellSeparators()
+        }
+    }
+    private func updateUIAfterCategoryChange() {
+        tableView.reloadData()
         updatePlaceholderVisibility()
         updateTableViewHeight()
         updateAllCellSeparators()
@@ -191,7 +242,7 @@ extension CategoryScreenViewController: CreateCategoryViewControllerDelegate {
         tableView.isHidden = categories.isEmpty
         placeholderStackView.isHidden = !categories.isEmpty
         
-        uptateUIAfterCategoryChange()
+        updateUIAfterCategoryChange()
     }
     
     func didUpdateCategory(from oldCategory: TrackerCategory, to newCategory: TrackerCategory) {
@@ -202,14 +253,7 @@ extension CategoryScreenViewController: CreateCategoryViewControllerDelegate {
                 selectedCategory = newCategory
             }
         }
-        uptateUIAfterCategoryChange()
-    }
-    
-    private func uptateUIAfterCategoryChange() {
-        tableView.reloadData()
-        updatePlaceholderVisibility()
-        updateTableViewHeight()
-        updateAllCellSeparators()
+        updateUIAfterCategoryChange()
     }
 }
 
@@ -253,7 +297,6 @@ extension CategoryScreenViewController: UITableViewDelegate {
         return 75
     }
     
-    // MARK: - Context Menu
     func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
         let identifier = "\(indexPath.row)" as NSString
         
@@ -278,24 +321,5 @@ extension CategoryScreenViewController: UITableViewDelegate {
         parameters.backgroundColor = .clear
         
         return UITargetedPreview(view: cell, parameters: parameters)
-    }
-    
-    private func createContextMenu(for indexPath: IndexPath) -> UIMenu {
-        let editAction = UIAction(
-            title: "Редактировать",
-            image: nil
-        ) { [weak self] _ in
-            self?.editCategory(at: indexPath)
-        }
-        
-        let deleteAction = UIAction(
-            title: "Удалить",
-            image: nil,
-            attributes: .destructive
-        ) { [weak self] _ in
-            self?.deleteCategory(at: indexPath)
-        }
-        
-        return UIMenu(title: "", children: [editAction, deleteAction])
     }
 }

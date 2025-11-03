@@ -160,19 +160,46 @@ final class CategoryScreenViewController: UIViewController {
             }
         }
     }
+    
+    private func editCategory(at indexPath: IndexPath) {
+        let categoryToEdit = categories[indexPath.row]
+        let editVC = EditCategoryViewController()
+        editVC.delegate = self
+        editVC.editingCategory = categoryToEdit
+        present(editVC, animated: true)
+    }
 }
 
+// MARK: - CreateCategoryViewControllerDelegate
 extension CategoryScreenViewController: CreateCategoryViewControllerDelegate {
     func didCreateCategory(_ category: TrackerCategory) {
         categories.append(category)
         tableView.isHidden = categories.isEmpty
         placeholderStackView.isHidden = !categories.isEmpty
+
+        uptateUIAfterCategoryChange()
+    }
+    
+    func didUpdateCategory(from oldCategory: TrackerCategory, to newCategory: TrackerCategory) {
+        if let index = categories.firstIndex( where: {$0.title == oldCategory.title }) {
+            categories[index] = newCategory
+            
+            if selectedCategory?.title == oldCategory.title {
+                selectedCategory = newCategory
+            }
+        }
+        uptateUIAfterCategoryChange()
+    }
+
+    private func uptateUIAfterCategoryChange() {
         tableView.reloadData()
+        updatePlaceholderVisibility()
         updateTableViewHeight()
         updateAllCellSeparators()
     }
 }
 
+// MARK: - UITableViewDataSource
 extension CategoryScreenViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return categories.count
@@ -191,6 +218,7 @@ extension CategoryScreenViewController: UITableViewDataSource {
     }
 }
 
+// MARK: - UITableViewDelegate
 extension CategoryScreenViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
@@ -209,5 +237,15 @@ extension CategoryScreenViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 75
+    }
+    
+    func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
+            let editAction = UIAction(title: "Редактировать", image: nil, attributes: .destructive) { _ in
+                self.editCategory(at: indexPath)
+            }
+            
+            return UIMenu(title: "", children: [editAction])
+        }
     }
 }

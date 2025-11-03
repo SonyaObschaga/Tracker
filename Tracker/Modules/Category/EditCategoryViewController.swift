@@ -1,39 +1,37 @@
 import UIKit
 
-protocol CreateCategoryViewControllerDelegate: AnyObject {
-    func didCreateCategory(_ category: TrackerCategory)
-    func didUpdateCategory(from oldCategory: TrackerCategory, to newCategory: TrackerCategory)
-}
-
-// MARK: - CreateCategoryViewController
-final class CreateCategoryViewController: UIViewController {
+// MARK: - EditCategoryViewController
+final class EditCategoryViewController: UIViewController {
     
     // MARK: - Properties
     weak var delegate: CreateCategoryViewControllerDelegate?
-
+    var editingCategory: TrackerCategory?
+    var isEditingMode: Bool { return editingCategory != nil }
+    
     //MARK: - UI Elements
     private let titleLabel = UILabel()
     private let textFieldOfCategoryName = UITextField()
     private let doneButton = UIButton()
-
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         
         setupUI()
-        updateCreateButtonState()
+        setupEditingMode()
     }
     
     // MARK: - Actions
-    @objc private func textFieldDidChange() {
-        updateCreateButtonState()
-    }
-    
     @objc private func didTapDoneButton() {
         guard let categoryName = textFieldOfCategoryName.text, !categoryName.isEmpty else { return }
-        let newCategory = TrackerCategory(title: categoryName, trackers: [])
-        delegate?.didCreateCategory(newCategory)
+        
+        if isEditingMode, let oldCategory = editingCategory {
+            let updatedCategory = TrackerCategory(title: categoryName, trackers: oldCategory.trackers)
+            delegate?.didUpdateCategory(from: oldCategory, to: updatedCategory)
+        } else {
+            let newCategory = TrackerCategory(title: categoryName, trackers: [])
+            delegate?.didCreateCategory(newCategory)
+        }
         
         dismiss(animated: true, completion: nil)
     }
@@ -47,7 +45,7 @@ final class CreateCategoryViewController: UIViewController {
     }
     
     private func setupTitleLabel() {
-        titleLabel.text = "Новая категория"
+        titleLabel.text = "Редактирование категории"
         titleLabel.textAlignment = .center
         titleLabel.numberOfLines = 0
         titleLabel.textColor = .ypBlackDay
@@ -63,7 +61,6 @@ final class CreateCategoryViewController: UIViewController {
     }
     
     private func setuptextFieldOfCategoryName() {
-        textFieldOfCategoryName.placeholder = "Введите название категории"
         textFieldOfCategoryName.textColor = .ypBlackDay
         textFieldOfCategoryName.backgroundColor = .ypBackgroundDay
         textFieldOfCategoryName.layer.masksToBounds = true
@@ -71,7 +68,6 @@ final class CreateCategoryViewController: UIViewController {
         textFieldOfCategoryName.font = UIFont.systemFont(ofSize: 17, weight: .regular)
         textFieldOfCategoryName.clearButtonMode = .whileEditing
         textFieldOfCategoryName.returnKeyType = .done
-        textFieldOfCategoryName.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
         
         let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: textFieldOfCategoryName.frame.height))
         textFieldOfCategoryName.leftView = paddingView
@@ -111,11 +107,10 @@ final class CreateCategoryViewController: UIViewController {
     }
     
     // MARK: - Private Methods
-    private func updateCreateButtonState() {
-        let isFormValid = !(textFieldOfCategoryName.text?.isEmpty ?? true)
-        
-        doneButton.isEnabled = isFormValid
-        doneButton.backgroundColor = isFormValid ? .ypBlackDay : .ypGray
+    private func setupEditingMode() {
+        if let editingCategory = editingCategory {
+            textFieldOfCategoryName.text = editingCategory.title
+            doneButton.isEnabled = !editingCategory.title.isEmpty
+        }
     }
 }
-

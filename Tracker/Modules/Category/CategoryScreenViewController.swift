@@ -4,9 +4,9 @@ import UIKit
 final class CategoryScreenViewController: UIViewController {
     
     // MARK: - Properties
-    private var categories: [TrackerCategory] = []
-    private var selectedCategory: TrackerCategory?
+    private let viewModel: CategoryViewModel
     private var previouslySelectedIndexPath: IndexPath?
+    weak var delegate: CategorySelectionDelegate?
     
     // MARK: - UI Elements
     private let titleLabel = UILabel()
@@ -14,11 +14,22 @@ final class CategoryScreenViewController: UIViewController {
     private let addButton = UIButton()
     private let tableView = UITableView()
     
+    // MARK: - Initialization
+    init(viewModel: CategoryViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        updatePlaceholderVisibility()
+        setupBindings()
+        updateUI()
     }
     
     // MARK: - Actions
@@ -28,7 +39,7 @@ final class CategoryScreenViewController: UIViewController {
         present(createCategoryVC, animated: true)
     }
     
-    // MARK: - SetupUI
+    // MARK: - Setup
     private func setupUI() {
         view.backgroundColor = .systemBackground
         setupTitleLabel()
@@ -38,7 +49,7 @@ final class CategoryScreenViewController: UIViewController {
     }
     
     private func setupTableView() {
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Category Cell")
+        tableView.register(CategoryTableViewCell.self, forCellReuseIdentifier: "CategoryCell")
         tableView.dataSource = self
         tableView.delegate = self
         tableView.isScrollEnabled = false
@@ -127,18 +138,46 @@ final class CategoryScreenViewController: UIViewController {
         ])
     }
     
+    // MARK: - Binding
+    private func setupBindings() {
+        viewModel.categoriesDidChange = { [weak self] in
+            self?.updateUI()
+        }
+        
+        viewModel.placeholderVisibilityDidChange = { [weak self] isEmpty in
+            self?.updateUI()
+        }
+        
+        viewModel.placeholderVisibilityDidChange = { [weak self] isEmpty in
+            DispatchQueue.main.async {
+                self?.updatePlaceholderVisibility()
+            }
+        }
+        
+        viewModel.selectedCategoryDidChange = { [weak self] _ in
+            DispatchQueue.main.async {
+                self?.tableView.reloadData()
+            }
+        }
+    }
+    
     // MARK: - Private Methods
+    private func updateUI() {
+        tableView.reloadData()
+        updateTableViewHeight()
+        updateAllCellSeparators()
+        updatePlaceholderVisibility()
+    }
+    
     private func updatePlaceholderVisibility() {
-        let isEmpty = categories.isEmpty
+        let isEmpty = viewModel.shouldShowPlaceholder
         placeholderStackView.isHidden = !isEmpty
         tableView.isHidden = isEmpty
-        tableView.reloadData()
     }
     
     private func updateTableViewHeight() {
         let rowHeight: CGFloat = 75
-        let numberOfRows = categories.count
-        let totalHeight = CGFloat(numberOfRows) * rowHeight
+        let totalHeight = CGFloat(viewModel.numberOfCategories) * rowHeight
         
         if let heightConstraint = tableView.constraints.first(where: { $0.firstAttribute == .height }) {
             heightConstraint.constant = totalHeight
@@ -152,7 +191,7 @@ final class CategoryScreenViewController: UIViewController {
     private func updateAllCellSeparators() {
         for visibleCell in tableView.visibleCells {
             if let indexPath = tableView.indexPath(for: visibleCell) {
-                if indexPath.row == categories.count - 1 {
+                if indexPath.row == viewModel.numberOfCategories - 1 {
                     visibleCell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: .greatestFiniteMagnitude)
                 } else {
                     visibleCell.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
@@ -163,7 +202,7 @@ final class CategoryScreenViewController: UIViewController {
     
     // MARK: - Context Menu
     private func editCategory(at indexPath: IndexPath) {
-        let categoryToEdit = categories[indexPath.row]
+        guard let categoryToEdit = viewModel.category(at: indexPath.row) else { return }
         let editVC = EditCategoryViewController()
         editVC.delegate = self
         editVC.editingCategory = categoryToEdit
@@ -171,8 +210,6 @@ final class CategoryScreenViewController: UIViewController {
     }
     
     private func deleteCategory(at indexPath: IndexPath) {
-        let categoryToDelete = categories[indexPath.row]
-        
         let alert = UIAlertController(
             title: "Эта категория точно не нужна?",
             message: nil,
@@ -180,7 +217,7 @@ final class CategoryScreenViewController: UIViewController {
         )
         
         let deleteAction = UIAlertAction(title: "Удалить?", style: .destructive) { [weak self] _ in
-            self?.performDeleteCategory(at: indexPath, categoryToDelete: categoryToDelete)
+            self?.viewModel.deleteCategory(at: indexPath.row)
         }
         
         let cancelAction = UIAlertAction(title: "Отменить", style: .cancel)
@@ -209,68 +246,36 @@ final class CategoryScreenViewController: UIViewController {
         
         return UIMenu(title: "", children: [editAction, deleteAction])
     }
-    
-    private func performDeleteCategory(at indexPath: IndexPath, categoryToDelete: TrackerCategory) {
-        categories.remove(at: indexPath.row)
-        let wasSelectedCategory = selectedCategory?.title == categoryToDelete.title
-        
-        if wasSelectedCategory {
-            selectedCategory = nil
-            previouslySelectedIndexPath = nil
-        }
-        
-        if categories.isEmpty {
-            updateUIAfterCategoryChange()
-        } else {
-            tableView.deleteRows(at: [indexPath], with: .automatic)
-            updateTableViewHeight()
-            updateAllCellSeparators()
-        }
-    }
-    private func updateUIAfterCategoryChange() {
-        tableView.reloadData()
-        updatePlaceholderVisibility()
-        updateTableViewHeight()
-        updateAllCellSeparators()
-    }
 }
 
 // MARK: - CreateCategoryViewControllerDelegate
 extension CategoryScreenViewController: CreateCategoryViewControllerDelegate {
     func didCreateCategory(_ category: TrackerCategory) {
-        categories.append(category)
-        tableView.isHidden = categories.isEmpty
-        placeholderStackView.isHidden = !categories.isEmpty
-        
-        updateUIAfterCategoryChange()
+        viewModel.addCategory(category)
     }
     
     func didUpdateCategory(from oldCategory: TrackerCategory, to newCategory: TrackerCategory) {
-        if let index = categories.firstIndex( where: {$0.title == oldCategory.title }) {
-            categories[index] = newCategory
-            
-            if selectedCategory?.title == oldCategory.title {
-                selectedCategory = newCategory
-            }
-        }
-        updateUIAfterCategoryChange()
+        viewModel.updateCategory(from: oldCategory, to: newCategory)
     }
 }
 
 // MARK: - UITableViewDataSource
 extension CategoryScreenViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return categories.count
+        return viewModel.numberOfCategories
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "Category Cell", for: indexPath)
-        let category = categories[indexPath.row]
-        cell.textLabel?.text = category.title
-        cell.backgroundColor = .ypBackgroundDay
+        guard let cell = tableView.dequeueReusableCell(
+            withIdentifier: "CategoryCell",
+            for: indexPath
+        ) as? CategoryTableViewCell,
+              let category = viewModel.category(at: indexPath.row) else {
+            return UITableViewCell()
+        }
         
-        let isSelected = selectedCategory?.title == category.title
-        cell.accessoryType = isSelected ? .checkmark : .none
+        let isSelected = viewModel.isCategorySelected(category)
+        cell.configure(with: category, isSelected: isSelected)
         
         return cell
     }
@@ -287,10 +292,13 @@ extension CategoryScreenViewController: UITableViewDelegate {
             indexPathsToReload.append(previousIndexPath)
         }
         
-        selectedCategory = categories[indexPath.row]
+        viewModel.selectCategory(at: indexPath.row)
         previouslySelectedIndexPath = indexPath
         
+        delegate?.didSelectCategory(viewModel.selectedCategory)
+        
         tableView.reloadRows(at: indexPathsToReload, with: .none)
+        dismiss(animated: true)
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {

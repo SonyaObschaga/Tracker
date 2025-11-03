@@ -1,11 +1,31 @@
 import UIKit
 
+// MARK: - CategoryViewControllerDelegate
 protocol CategoryViewControllerDelegate: AnyObject {
+    func didSelectCategory(_ category: TrackerCategory?)
+}
+
+// MARK: - CategorySelectionDelegate
+protocol CategorySelectionDelegate: AnyObject {
     func didSelectCategory(_ category: TrackerCategory?)
 }
 
 // MARK: - CreateHabitController
 final class CreateHabitViewController: UIViewController {
+    
+    // MARK: - Private Properties
+    private var trackerStore: TrackerStore?
+    private var trackerCategoryStore: TrackerCategoryStore?
+    private var selectedSchedule: [Weekday] = []
+    var categories: [TrackerCategory] = []
+    private var selectedCategory: TrackerCategory?
+    weak var delegate: CreateHabitDelegate?
+    private var settingsOptions: [SettingsOption] = [
+        SettingsOption(title: "Категория", subtitle: nil, type: .category),
+        SettingsOption(title: "Расписание", subtitle: nil, type: .schedule)
+    ]
+    private var selectedEmoji: String?
+    private var selectedColor: UIColor?
     
     // MARK: - UI Elements
     private let scrollView = UIScrollView()
@@ -42,19 +62,7 @@ final class CreateHabitViewController: UIViewController {
         return collectionView
     }()
     
-    // MARK: - Private Properties
-    private var trackerStore: TrackerStore?
-    private var trackerCategoryStore: TrackerCategoryStore?
-    private var selectedSchedule: [Weekday] = []
-    var categories: [TrackerCategory] = []
-    private var selectedCategory: TrackerCategory?
-    weak var delegate: CreateHabitDelegate?
-    private var settingsOptions: [SettingsOption] = [
-        SettingsOption(title: "Категория", subtitle: "Важное", type: .category),
-        SettingsOption(title: "Расписание", subtitle: nil, type: .schedule)
-    ]
-    private var selectedEmoji: String?
-    private var selectedColor: UIColor?
+    
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -95,7 +103,7 @@ final class CreateHabitViewController: UIViewController {
             delegate?.didCreateTracker(newTracker, in: categoryToUse)
             dismiss(animated: true)
         } catch {
-            print("Ошибка сохранения трекера: \(error)")
+            assertionFailure(error.localizedDescription)
         }
     }
     
@@ -324,8 +332,18 @@ final class CreateHabitViewController: UIViewController {
     
     // MARK: - Private Methods
     private func openCategoryScreen() {
-        let categoryScreenVC = CategoryScreenViewController()
-        present(categoryScreenVC, animated: true, completion: nil)
+        let categoryStore = TrackerCategoryStore()
+        let viewModel = CategoryViewModel(categoryStore: categoryStore)
+        
+        if let selectedCategory = selectedCategory {
+            viewModel.selectCategory(selectedCategory)
+        }
+        
+        let categoryScreenVC = CategoryScreenViewController(viewModel: viewModel)
+        categoryScreenVC.delegate = self
+        
+        let navController = UINavigationController(rootViewController: categoryScreenVC)
+        present(navController, animated: true, completion: nil)
     }
     
     private func openScheduleScreen() {
@@ -419,7 +437,6 @@ extension CreateHabitViewController: UITableViewDelegate {
         tableView.deselectRow(at: indexPath, animated: true)
         
         let option = settingsOptions[indexPath.row]
-        
         switch option.type {
         case .category:
             openCategoryScreen()
@@ -469,15 +486,6 @@ extension CreateHabitViewController: UITextFieldDelegate {
     }
 }
 
-// MARK: - ScheduleDelegate
-extension CreateHabitViewController: ScheduleDelegate {
-    func didSelectSchedule(days: [Weekday]) {
-        selectedSchedule = days
-        updateScheduleSubtitle()
-        updateCreateButtonState()
-    }
-}
-
 // MARK: - UICollectionViewDelegate
 extension CreateHabitViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
@@ -508,7 +516,6 @@ extension CreateHabitViewController: UICollectionViewDelegate {
         
         collectionView.reloadData()
         collectionView.selectItem(at: indexPath, animated: true, scrollPosition: [])
-        
         updateCreateButtonState()
     }
 }
@@ -557,5 +564,39 @@ extension CreateHabitViewController: UICollectionViewDataSource {
         }
         
         return cell
+    }
+}
+
+// MARK: - ScheduleDelegate
+extension CreateHabitViewController: ScheduleDelegate {
+    func didSelectSchedule(days: [Weekday]) {
+        selectedSchedule = days
+        updateScheduleSubtitle()
+        updateCreateButtonState()
+    }
+}
+
+// MARK: - CategorySelectionDelegate
+extension CreateHabitViewController: CategorySelectionDelegate {
+    func didSelectCategory(_ category: TrackerCategory?) {
+        selectedCategory = category
+        
+        if let category = category {
+            settingsOptions[0] = SettingsOption(
+                title: "Категория",
+                subtitle: category.title,
+                type: .category
+            )
+        } else {
+            settingsOptions[0] = SettingsOption(
+                title: "Категория",
+                subtitle: nil,
+                type: .category
+            )
+        }
+        
+        let categoryIndexPath = IndexPath(row: 0, section: 0)
+        tableView.reloadRows(at: [categoryIndexPath], with: .automatic)
+        updateCreateButtonState()
     }
 }

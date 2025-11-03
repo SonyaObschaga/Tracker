@@ -253,17 +253,49 @@ extension CategoryScreenViewController: UITableViewDelegate {
         return 75
     }
     
+    // MARK: - Context Menu
     func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
-        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
-            let editAction = UIAction(title: "Редактировать", image: nil, attributes: .destructive) { _ in
-                self.editCategory(at: indexPath)
-            }
-            
-            let deleteAction = UIAction(title: "Удалить", image: nil, attributes: .destructive) { _ in
-                self.deleteCategory(at: indexPath)
-            }
-            
-            return UIMenu(title: "", children: [editAction, deleteAction])
+        let identifier = "\(indexPath.row)" as NSString
+        
+        return UIContextMenuConfiguration(
+            identifier: identifier,
+            previewProvider: nil
+        ) { [weak self] _ in
+            return self?.createContextMenu(for: indexPath)
         }
+    }
+    
+    func tableView(_ tableView: UITableView, previewForHighlightingContextMenuWithConfiguration configuration: UIContextMenuConfiguration) -> UITargetedPreview? {
+        guard
+            let identifier = configuration.identifier as? String,
+            let index = Int(identifier),
+            let cell = tableView.cellForRow(at: IndexPath(row: index, section: 0))
+        else {
+            return nil
+        }
+        
+        let parameters = UIPreviewParameters()
+        parameters.backgroundColor = .clear
+        
+        return UITargetedPreview(view: cell, parameters: parameters)
+    }
+    
+    private func createContextMenu(for indexPath: IndexPath) -> UIMenu {
+        let editAction = UIAction(
+            title: "Редактировать",
+            image: nil
+        ) { [weak self] _ in
+            self?.editCategory(at: indexPath)
+        }
+        
+        let deleteAction = UIAction(
+            title: "Удалить",
+            image: nil,
+            attributes: .destructive
+        ) { [weak self] _ in
+            self?.deleteCategory(at: indexPath)
+        }
+        
+        return UIMenu(title: "", children: [editAction, deleteAction])
     }
 }

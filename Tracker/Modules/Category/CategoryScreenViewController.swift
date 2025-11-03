@@ -159,6 +159,23 @@ final class CategoryScreenViewController: UIViewController {
                 self?.tableView.reloadData()
             }
         }
+        
+        viewModel.onError = { [weak self] error in
+            self?.showErrorAlert(error)
+        }
+        
+        private func showErrorAlert(_ error: Error) {
+            let alert = UIAlertController(
+                title: "Ошибка",
+                message: error.localizedDescription,
+                preferredStyle: .alert
+            )
+            
+            let okAction = UIAlertAction(title: "OK", style: .default)
+            alert.addAction(okAction)
+            
+            present(alert, animated: true)
+        }
     }
     
     // MARK: - Private Methods

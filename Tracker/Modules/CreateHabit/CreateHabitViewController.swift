@@ -342,8 +342,7 @@ final class CreateHabitViewController: UIViewController {
         let categoryScreenVC = CategoryScreenViewController(viewModel: viewModel)
         categoryScreenVC.delegate = self
         
-        let navController = UINavigationController(rootViewController: categoryScreenVC)
-        present(navController, animated: true, completion: nil)
+        present(categoryScreenVC, animated: true, completion: nil)
     }
     
     private func openScheduleScreen() {

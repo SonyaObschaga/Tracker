@@ -8,6 +8,7 @@ final class CategoryViewModel: NSObject {
     var categoriesDidChange: (() -> Void)?
     var selectedCategoryDidChange: ((TrackerCategory?) -> Void)?
     var placeholderVisibilityDidChange: ((Bool) -> Void)?
+    var onError: ((Error) -> Void)?
     
     // MARK: - Properties
     private let categoryStore: TrackerCategoryStoreProtocol
@@ -97,8 +98,8 @@ final class CategoryViewModel: NSObject {
     
     // MARK: - Private Methods
     private func handleError(_ error: Error) {
-        let alert = UIAlertController(title: "Ошибка",
-                                      message: error.localizedDescription,
-                                      preferredStyle: .alert)
+        DispatchQueue.main.async {
+            self.onError?(error)
+        }
     }
 }

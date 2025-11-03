@@ -168,6 +168,20 @@ final class CategoryScreenViewController: UIViewController {
         editVC.editingCategory = categoryToEdit
         present(editVC, animated: true)
     }
+    
+    private func deleteCategory(at indexPath: IndexPath) {
+        categories.remove(at: indexPath.row)
+        
+        if let selected = selectedCategory, selected.title == categories[indexPath.row].title {
+            selectedCategory = nil
+            previouslySelectedIndexPath = nil
+        }
+        
+        tableView.deleteRows(at: [indexPath], with: .automatic)
+        updatePlaceholderVisibility()
+        updateTableViewHeight()
+        updateAllCellSeparators()
+    }
 }
 
 // MARK: - CreateCategoryViewControllerDelegate
@@ -176,7 +190,7 @@ extension CategoryScreenViewController: CreateCategoryViewControllerDelegate {
         categories.append(category)
         tableView.isHidden = categories.isEmpty
         placeholderStackView.isHidden = !categories.isEmpty
-
+        
         uptateUIAfterCategoryChange()
     }
     
@@ -190,7 +204,7 @@ extension CategoryScreenViewController: CreateCategoryViewControllerDelegate {
         }
         uptateUIAfterCategoryChange()
     }
-
+    
     private func uptateUIAfterCategoryChange() {
         tableView.reloadData()
         updatePlaceholderVisibility()
@@ -245,7 +259,11 @@ extension CategoryScreenViewController: UITableViewDelegate {
                 self.editCategory(at: indexPath)
             }
             
-            return UIMenu(title: "", children: [editAction])
+            let deleteAction = UIAction(title: "Удалить", image: nil, attributes: .destructive) { _ in
+                self.deleteCategory(at: indexPath)
+            }
+            
+            return UIMenu(title: "", children: [editAction, deleteAction])
         }
     }
 }

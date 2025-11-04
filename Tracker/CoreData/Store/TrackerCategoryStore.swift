@@ -143,6 +143,7 @@ extension TrackerCategoryStore: TrackerCategoryStoreProtocol {
         }
         
         try context.save()
+        try fetchedResultsController.performFetch()
     }
     
     func updateCategory(_ oldCategory: TrackerCategory, to newCategory: TrackerCategory) throws {
@@ -176,6 +177,7 @@ extension TrackerCategoryStore: TrackerCategoryStoreProtocol {
         }
         
         try context.save()
+        try fetchedResultsController.performFetch()
     }
     
     func deleteCategory(_ category: TrackerCategory) throws {
@@ -189,6 +191,7 @@ extension TrackerCategoryStore: TrackerCategoryStoreProtocol {
         
         context.delete(categoryCoreData)
         try context.save()
+        try fetchedResultsController.performFetch()
     }
     
     func addTracker(_ tracker: Tracker, toCategory title: String) throws {
@@ -218,6 +221,7 @@ extension TrackerCategoryStore: TrackerCategoryStoreProtocol {
         
         categoryCoreData.addToTrackers(trackerCoreData)
         try context.save()
+        try fetchedResultsController.performFetch()
     }
     
     // MARK: - Private Methods

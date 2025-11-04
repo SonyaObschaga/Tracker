@@ -394,25 +394,12 @@ extension TrackerViewController: UICollectionViewDelegateFlowLayout {
 // MARK: - CreateHabitDelegate
 extension TrackerViewController: CreateHabitDelegate {
     func didCreateTracker(_ tracker: Tracker, in category: TrackerCategory) {
-        if let categoryIndex = categories.firstIndex(where: {
-            $0.title == category.title
-        }) {
-            let oldCategory = categories[categoryIndex]
-            let updatedTrackers = oldCategory.trackers + [tracker]
-            let updatedCategory = TrackerCategory(
-                title: oldCategory.title,
-                trackers: updatedTrackers
-            )
-            categories[categoryIndex] = updatedCategory
-        } else {
-            let newCategory = TrackerCategory(
-                title: "Важно",
-                trackers: [tracker]
-            )
-            categories.append(newCategory)
+        do {
+            try trackerCategoryStore?.addTracker(tracker, toCategory: category.title)
+            reloadData()
+        } catch {
+            assertionFailure(error.localizedDescription)
         }
-        
-        applyDateFilter()
     }
 }
 

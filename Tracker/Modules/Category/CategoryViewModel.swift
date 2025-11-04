@@ -48,8 +48,13 @@ final class CategoryViewModel: NSObject {
     
     func addCategory(_ category: TrackerCategory) {
         do {
+            print("Добавляем категорию: \(category.title)")
             try categoryStore.addCategory(category)
+            print("Категория успешно добавлена в store")
+            loadCategories()
+            print("Категории перезагружены, теперь количество: \(categories.count)")
         } catch {
+            print("Ошибка при добавлении категории: \(error)")
             handleError(error)
         }
     }
@@ -57,6 +62,7 @@ final class CategoryViewModel: NSObject {
     func updateCategory(from oldCategory: TrackerCategory, to newCategory: TrackerCategory) {
         do {
             try categoryStore.updateCategory(oldCategory, to: newCategory)
+            loadCategories()
             if selectedCategory?.title == oldCategory.title {
                 selectedCategory = newCategory
             }
@@ -71,6 +77,7 @@ final class CategoryViewModel: NSObject {
         
         do {
             try categoryStore.deleteCategory(categoryToDelete)
+            loadCategories()
             if selectedCategory?.title == categoryToDelete.title {
                 selectedCategory = nil
             }

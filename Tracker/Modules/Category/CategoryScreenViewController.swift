@@ -145,10 +145,6 @@ final class CategoryScreenViewController: UIViewController {
         }
         
         viewModel.placeholderVisibilityDidChange = { [weak self] isEmpty in
-            self?.updateUI()
-        }
-        
-        viewModel.placeholderVisibilityDidChange = { [weak self] isEmpty in
             DispatchQueue.main.async {
                 self?.updatePlaceholderVisibility()
             }
@@ -163,27 +159,16 @@ final class CategoryScreenViewController: UIViewController {
         viewModel.onError = { [weak self] error in
             self?.showErrorAlert(error)
         }
-        
-        private func showErrorAlert(_ error: Error) {
-            let alert = UIAlertController(
-                title: "Ошибка",
-                message: error.localizedDescription,
-                preferredStyle: .alert
-            )
-            
-            let okAction = UIAlertAction(title: "OK", style: .default)
-            alert.addAction(okAction)
-            
-            present(alert, animated: true)
-        }
     }
+
+
     
     // MARK: - Private Methods
     private func updateUI() {
         tableView.reloadData()
+        updatePlaceholderVisibility()
         updateTableViewHeight()
         updateAllCellSeparators()
-        updatePlaceholderVisibility()
     }
     
     private func updatePlaceholderVisibility() {
@@ -262,6 +247,19 @@ final class CategoryScreenViewController: UIViewController {
         }
         
         return UIMenu(title: "", children: [editAction, deleteAction])
+    }
+    
+    private func showErrorAlert(_ error: Error) {
+        let alert = UIAlertController(
+            title: "Ошибка",
+            message: error.localizedDescription,
+            preferredStyle: .alert
+        )
+        
+        let okAction = UIAlertAction(title: "OK", style: .default)
+        alert.addAction(okAction)
+        
+        present(alert, animated: true)
     }
 }
 

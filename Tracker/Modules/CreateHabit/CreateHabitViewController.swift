@@ -98,13 +98,8 @@ final class CreateHabitViewController: UIViewController {
             schedule: selectedSchedule,
             isRegular: true)
         
-        do {
-            try trackerCategoryStore?.addTracker(newTracker, toCategory: categoryToUse.title)
-            delegate?.didCreateTracker(newTracker, in: categoryToUse)
-            dismiss(animated: true)
-        } catch {
-            assertionFailure(error.localizedDescription)
-        }
+        delegate?.didCreateTracker(newTracker, in: categoryToUse)
+        dismiss(animated: true)
     }
     
     @objc private func textFieldDidChange() {

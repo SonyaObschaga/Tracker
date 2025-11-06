@@ -208,7 +208,7 @@ class TrackerViewController: UIViewController {
         placeholderStackView.translatesAutoresizingMaskIntoConstraints = false
         placeholderStackView.axis = .vertical
         placeholderStackView.alignment = .center
-        placeholderStackView.spacing = 16
+        placeholderStackView.spacing = 8
         
         let placeholderImage = UIImageView(image: UIImage(named: "dizzy"))
         placeholderImage.contentMode = .scaleAspectFit
@@ -222,7 +222,7 @@ class TrackerViewController: UIViewController {
         let placeholderLabel = UILabel()
         placeholderLabel.text = "Что будем отслеживать?"
         placeholderLabel.textAlignment = .center
-        placeholderLabel.font = UIFont.systemFont(ofSize: 17)
+        placeholderLabel.font = UIFont.systemFont(ofSize: 12, weight: .medium)
         placeholderLabel.textColor = .label
         
         placeholderStackView.addArrangedSubview(placeholderImage)
@@ -394,25 +394,12 @@ extension TrackerViewController: UICollectionViewDelegateFlowLayout {
 // MARK: - CreateHabitDelegate
 extension TrackerViewController: CreateHabitDelegate {
     func didCreateTracker(_ tracker: Tracker, in category: TrackerCategory) {
-        if let categoryIndex = categories.firstIndex(where: {
-            $0.title == category.title
-        }) {
-            let oldCategory = categories[categoryIndex]
-            let updatedTrackers = oldCategory.trackers + [tracker]
-            let updatedCategory = TrackerCategory(
-                title: oldCategory.title,
-                trackers: updatedTrackers
-            )
-            categories[categoryIndex] = updatedCategory
-        } else {
-            let newCategory = TrackerCategory(
-                title: "Важно",
-                trackers: [tracker]
-            )
-            categories.append(newCategory)
+        do {
+            try trackerCategoryStore?.addTracker(tracker, toCategory: category.title)
+            reloadData()
+        } catch {
+            assertionFailure(error.localizedDescription)
         }
-        
-        applyDateFilter()
     }
 }
 

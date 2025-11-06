@@ -1,5 +1,6 @@
 import UIKit
 
+// MARK: - OnboardingViewController
 final class OnboardingViewController: UIPageViewController {
     
     // MARK: - Properties
@@ -17,6 +18,7 @@ final class OnboardingViewController: UIPageViewController {
         return [blue, red]
     }()
     
+    // MARK: - UI Elements
     lazy var pageControl: UIPageControl = {
         let pageControl = UIPageControl()
         pageControl.numberOfPages = pages.count
@@ -46,35 +48,7 @@ final class OnboardingViewController: UIPageViewController {
         setupUI()
     }
     
-    // MARK: - Private Methods
-    private func setupPageViewController() {
-        dataSource = self
-        delegate = self
-        
-        if let first = pages.first {
-            setViewControllers([first], direction: .forward, animated: true, completion: nil)
-        }
-    }
-    
-    private func setupUI() {
-        view.addSubview(pageControl)
-        view.addSubview(button)
-        
-        button.addTarget(self, action: #selector(didTapButton), for: .touchUpInside)
-        
-        NSLayoutConstraint.activate([
-            // Page Control рядом с кнопкой
-            pageControl.bottomAnchor.constraint(equalTo: button.topAnchor, constant: -24),
-            pageControl.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            
-            // Кнопка внизу
-            button.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -50),
-            button.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            button.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            button.heightAnchor.constraint(equalToConstant: 60)
-        ])
-    }
-    
+    // MARK: - Actions
     @objc private func didTapButton() {
         OnboardingManager.shared.markOnboardingAsShown()
         
@@ -84,6 +58,24 @@ final class OnboardingViewController: UIPageViewController {
         }
         
         sceneDelegate.showMainScreen()
+    }
+    
+    // MARK: - SetupUI
+    private func setupUI() {
+        view.addSubview(pageControl)
+        view.addSubview(button)
+        
+        button.addTarget(self, action: #selector(didTapButton), for: .touchUpInside)
+        
+        NSLayoutConstraint.activate([
+            pageControl.bottomAnchor.constraint(equalTo: button.topAnchor, constant: -24),
+            pageControl.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            
+            button.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -50),
+            button.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            button.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            button.heightAnchor.constraint(equalToConstant: 60)
+        ])
     }
     
     private func createOnboardingPage(backgroundImageName: String, title: String) -> UIViewController {
@@ -125,6 +117,16 @@ final class OnboardingViewController: UIPageViewController {
         
         return viewController
     }
+    
+    // MARK: - Private Methods
+    private func setupPageViewController() {
+        dataSource = self
+        delegate = self
+        
+        if let first = pages.first {
+            setViewControllers([first], direction: .forward, animated: true, completion: nil)
+        }
+    }
 }
 
 // MARK: - UIPageViewControllerDataSource
@@ -133,13 +135,10 @@ extension OnboardingViewController: UIPageViewControllerDataSource {
         guard let viewControllerIndex = pages.firstIndex(of: viewController) else {
             return nil
         }
-        
         let previousIndex = viewControllerIndex - 1
-        
         guard previousIndex >= 0 else {
             return pages.last
         }
-        
         return pages[previousIndex]
     }
     
@@ -147,13 +146,10 @@ extension OnboardingViewController: UIPageViewControllerDataSource {
         guard let viewControllerIndex = pages.firstIndex(of: viewController) else {
             return nil
         }
-        
         let nextIndex = viewControllerIndex + 1
-        
         guard nextIndex < pages.count else {
             return pages.first
         }
-        
         return pages[nextIndex]
     }
 }

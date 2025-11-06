@@ -77,17 +77,13 @@ final class OnboardingViewController: UIPageViewController {
     
     @objc private func didTapButton() {
         OnboardingManager.shared.markOnboardingAsShown()
-        let tabBarController = TabBarController()
         
-        if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate {
-            sceneDelegate.showMainScreen()
-        } else {
-            guard let window = UIApplication.shared.windows.first else { return }
-            
-            UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: {
-                window.rootViewController = tabBarController
-            }, completion: nil)
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let sceneDelegate = windowScene.delegate as? SceneDelegate else {
+            return
         }
+        
+        sceneDelegate.showMainScreen()
     }
     
     private func createOnboardingPage(backgroundImageName: String, title: String) -> UIViewController {

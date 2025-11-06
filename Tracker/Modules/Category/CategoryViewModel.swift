@@ -10,7 +10,16 @@ final class CategoryViewModel: NSObject {
     var placeholderVisibilityDidChange: ((Bool) -> Void)?
     var onError: ((Error) -> Void)?
     
-    // MARK: - Properties
+    // MARK: - Computed Properties
+    var numberOfCategories: Int {
+        return categories.count
+    }
+    
+    var shouldShowPlaceholder: Bool {
+        return categories.isEmpty
+    }
+    
+    // MARK: - Private Properties
     private let categoryStore: TrackerCategoryStoreProtocol
     private(set) var categories: [TrackerCategory] = [] {
         didSet {
@@ -93,14 +102,6 @@ final class CategoryViewModel: NSObject {
     
     func isCategorySelected(_ category: TrackerCategory) -> Bool {
         return selectedCategory?.title == category.title
-    }
-    
-    var numberOfCategories: Int {
-        return categories.count
-    }
-    
-    var shouldShowPlaceholder: Bool {
-        return categories.isEmpty
     }
     
     // MARK: - Private Methods

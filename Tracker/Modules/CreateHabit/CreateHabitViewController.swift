@@ -13,13 +13,15 @@ protocol CategorySelectionDelegate: AnyObject {
 // MARK: - CreateHabitController
 final class CreateHabitViewController: UIViewController {
     
+    // MARK: - Properties
+    var categories: [TrackerCategory] = []
+    weak var delegate: CreateHabitDelegate?
+
     // MARK: - Private Properties
     private var trackerStore: TrackerStore?
     private var trackerCategoryStore: TrackerCategoryStore?
     private var selectedSchedule: [Weekday] = []
-    var categories: [TrackerCategory] = []
     private var selectedCategory: TrackerCategory?
-    weak var delegate: CreateHabitDelegate?
     private var settingsOptions: [SettingsOption] = [
         SettingsOption(title: "Категория", subtitle: nil, type: .category),
         SettingsOption(title: "Расписание", subtitle: nil, type: .schedule)

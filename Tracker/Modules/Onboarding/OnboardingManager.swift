@@ -2,12 +2,11 @@ import Foundation
 
 final class OnboardingManager {
     static let shared = OnboardingManager()
-    
+    private init() {}
+
     private let userDefaults = UserDefaults.standard
     private let onboardingShownKey = "onboardingShown"
-    
-    private init() {}
-    
+
     var isOnboardingShown: Bool {
         get {
             return userDefaults.bool(forKey: onboardingShownKey)

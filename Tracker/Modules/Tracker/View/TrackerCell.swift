@@ -137,26 +137,9 @@ final class TrackerCell: UICollectionViewCell {
         emojiView.backgroundColor = tracker.color
         plusButton.tintColor = tracker.color
         
-        let wordDay = pluralizeDays(completedDays)
-        daysLabel.text = "\(completedDays) \(wordDay)"
+        daysLabel.text = Localization.daysCount(completedDays)
         let image = isCompletedToday ? doneImage : unDoneImage
         plusButton.setImage(image, for: .normal)
-    }
-    
-    // MARK: - Private Method
-    private func pluralizeDays(_ count: Int) -> String {
-        let remainder = count % 10
-        let remainder100 = count % 100
-        
-        if remainder100 >= 11 && remainder100 <= 19 {
-            return "дней"
-        } else if remainder == 1 {
-            return "день"
-        } else if remainder >= 2 && remainder <= 4 {
-            return "дня"
-        } else {
-            return "дней"
-        }
     }
     
     // MARK: - Public Method
@@ -166,8 +149,7 @@ final class TrackerCell: UICollectionViewCell {
         let image = isCompletedToday ? doneImage : unDoneImage
         plusButton.setImage(image, for: .normal)
         
-        let wordDay = pluralizeDays(completedDays)
-        daysLabel.text = "\(completedDays) \(wordDay)"
+        daysLabel.text = Localization.daysCount(completedDays)
     }
     
     // MARK: - Actions

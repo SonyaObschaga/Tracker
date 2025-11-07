@@ -143,13 +143,15 @@ class TrackerViewController: UIViewController {
         datePicker.preferredDatePickerStyle = .compact
         datePicker.addTarget(self, action: #selector(dateChanged), for: .valueChanged)
         
-        let plusButton = UIButton(type: .custom)
-        plusButton.setImage(plusImage, for: .normal)
+        let plusButton = UIBarButtonItem(
+            image: UIImage(systemName: "plus"),
+            style: .plain,
+            target: self,
+            action: #selector(plusButtonTapped)
+        )
         plusButton.tintColor = .label
         
-        plusButton.addTarget(self, action: #selector(plusButtonTapped), for: .touchUpInside)
-        
-        navigationItem.leftBarButtonItem = UIBarButtonItem(customView: plusButton)
+        navigationItem.leftBarButtonItem = plusButton
         navigationItem.rightBarButtonItem = UIBarButtonItem(customView: datePicker)
         
         self.datePicker = datePicker

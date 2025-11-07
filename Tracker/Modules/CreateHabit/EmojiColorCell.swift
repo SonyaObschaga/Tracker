@@ -86,7 +86,7 @@ final class EmojiColorCell: UICollectionViewCell {
         emojiLabel.isHidden = false
         colorView.isHidden = true
         
-        selectionView.backgroundColor = isSelected ? .systemGray6 : .clear
+        selectionView.backgroundColor = isSelected ? .ypLightGray : .clear
         selectionView.layer.borderWidth = 0
         selectionView.layer.borderColor = UIColor.clear.cgColor
     }

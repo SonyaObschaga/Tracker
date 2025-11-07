@@ -7,12 +7,12 @@ final class OnboardingViewController: UIPageViewController {
     lazy var pages: [UIViewController] = {
         let blue = createOnboardingPage(
             backgroundImageName: "onboarding blue",
-            title: "Отслеживайте только\nто, что хотите"
+            title: "track_only_what_you_want".localized
         )
         
         let red = createOnboardingPage(
             backgroundImageName: "onboarding red",
-            title: "Даже если это\nне литры воды и йога"
+            title: "even_if_not_water_and_yoga".localized
         )
         
         return [blue, red]
@@ -34,7 +34,7 @@ final class OnboardingViewController: UIPageViewController {
         button.backgroundColor = .ypBlackDay
         button.layer.masksToBounds = true
         button.layer.cornerRadius = 16
-        button.setTitle("Вот это технологии!", for: .normal)
+        button.setTitle("that_is_technology".localized, for: .normal)
         button.setTitleColor(.ypWhiteDay, for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         button.translatesAutoresizingMaskIntoConstraints = false

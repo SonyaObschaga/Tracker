@@ -69,7 +69,7 @@ final class CategoryScreenViewController: UIViewController {
     }
     
     private func setupTitleLabel() {
-        titleLabel.text = "Категория"
+        titleLabel.text = "category".localized
         titleLabel.textAlignment = .center
         titleLabel.numberOfLines = 0
         titleLabel.textColor = .ypBlackDay
@@ -100,7 +100,7 @@ final class CategoryScreenViewController: UIViewController {
         ])
         
         let placeholderLabel = UILabel()
-        placeholderLabel.text = "Привычки и события можно\n объединить по смыслу"
+        placeholderLabel.text = "habits_events_grouped".localized
         placeholderLabel.textAlignment = .center
         placeholderLabel.font = UIFont.systemFont(ofSize: 12, weight: .medium)
         placeholderLabel.textColor = .label
@@ -122,7 +122,7 @@ final class CategoryScreenViewController: UIViewController {
         addButton.layer.cornerRadius = 16
         addButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         
-        addButton.setTitle("Добавить категорию", for: .normal)
+        addButton.setTitle("add_category".localized, for: .normal)
         addButton.setTitleColor(.ypWhiteDay, for: .normal)
         
         addButton.translatesAutoresizingMaskIntoConstraints = false
@@ -213,16 +213,16 @@ final class CategoryScreenViewController: UIViewController {
     
     private func deleteCategory(at indexPath: IndexPath) {
         let alert = UIAlertController(
-            title: "Эта категория точно не нужна?",
+            title: "confirm_category_deletion?".localized,
             message: nil,
             preferredStyle: .actionSheet
         )
         
-        let deleteAction = UIAlertAction(title: "Удалить?", style: .destructive) { [weak self] _ in
+        let deleteAction = UIAlertAction(title: "delete_question".localized, style: .destructive) { [weak self] _ in
             self?.viewModel.deleteCategory(at: indexPath.row)
         }
         
-        let cancelAction = UIAlertAction(title: "Отменить", style: .cancel)
+        let cancelAction = UIAlertAction(title: "cancel".localized, style: .cancel)
         
         alert.addAction(deleteAction)
         alert.addAction(cancelAction)
@@ -232,14 +232,14 @@ final class CategoryScreenViewController: UIViewController {
     
     private func createContextMenu(for indexPath: IndexPath) -> UIMenu {
         let editAction = UIAction(
-            title: "Редактировать",
+            title: "edit".localized,
             image: nil
         ) { [weak self] _ in
             self?.editCategory(at: indexPath)
         }
         
         let deleteAction = UIAction(
-            title: "Удалить",
+            title: "delete".localized,
             image: nil,
             attributes: .destructive
         ) { [weak self] _ in
@@ -251,12 +251,12 @@ final class CategoryScreenViewController: UIViewController {
     
     private func showErrorAlert(_ error: Error) {
         let alert = UIAlertController(
-            title: "Ошибка",
+            title: "error".localized,
             message: error.localizedDescription,
             preferredStyle: .alert
         )
         
-        let okAction = UIAlertAction(title: "OK", style: .default)
+        let okAction = UIAlertAction(title: "ok".localized, style: .default)
         alert.addAction(okAction)
         
         present(alert, animated: true)

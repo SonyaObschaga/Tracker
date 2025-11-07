@@ -23,8 +23,8 @@ final class CreateHabitViewController: UIViewController {
     private var selectedSchedule: [Weekday] = []
     private var selectedCategory: TrackerCategory?
     private var settingsOptions: [SettingsOption] = [
-        SettingsOption(title: "Категория", subtitle: nil, type: .category),
-        SettingsOption(title: "Расписание", subtitle: nil, type: .schedule)
+        SettingsOption(title: "category".localized, subtitle: nil, type: .category),
+        SettingsOption(title: "schedule".localized, subtitle: nil, type: .schedule)
     ]
     private var selectedEmoji: String?
     private var selectedColor: UIColor?
@@ -42,7 +42,7 @@ final class CreateHabitViewController: UIViewController {
     
     private lazy var warningLabel: UILabel = {
         let label = UILabel()
-        label.text = "Ограничение 38 символов"
+        label.text = "character_limit_38".localized
         label.font = UIFont.systemFont(ofSize: 17, weight: .regular)
         label.textColor = .ypRed
         label.isHidden = true
@@ -190,7 +190,7 @@ final class CreateHabitViewController: UIViewController {
         cancelButton.layer.borderColor = UIColor.ypRed.cgColor
         cancelButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         
-        cancelButton.setTitle("Отменить", for: .normal)
+        cancelButton.setTitle("cancel".localized, for: .normal)
         cancelButton.setTitleColor(.ypRed, for: .normal)
         
         cancelButton.addTarget(self, action: #selector(didTapCancelButton), for: .touchUpInside)
@@ -205,7 +205,7 @@ final class CreateHabitViewController: UIViewController {
         createButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         createButton.isEnabled = false
         
-        createButton.setTitle("Создать", for: .normal)
+        createButton.setTitle("create".localized, for: .normal)
         createButton.setTitleColor(.ypWhiteDay, for: .normal)
         
         createButton.translatesAutoresizingMaskIntoConstraints = false
@@ -218,25 +218,24 @@ final class CreateHabitViewController: UIViewController {
         if selectedSchedule.isEmpty {
             scheduleText = ""
         } else if selectedSchedule.count == Weekday.allCases.count {
-            scheduleText = "Каждый день"
+            scheduleText = "every_day".localized
         } else {
             let sortedDays = selectedSchedule.sorted { $0.rawValue < $1.rawValue }
             scheduleText = sortedDays.map { $0.shortName }.joined(separator: ", ")
         }
         
         settingsOptions[1] = SettingsOption(
-            title: "Расписание",
+            title: "schedule".localized,
             subtitle: scheduleText.isEmpty ? nil : scheduleText,
             type: .schedule
         )
-        
-        print("Обновляем subtitle: '\(scheduleText)'")
+
         let scheduleIndexPath = IndexPath(row: 1, section: 0)
         tableView.reloadRows(at: [scheduleIndexPath], with: .automatic)
     }
     
     private func setupTitleLabel() {
-        titleLabel.text = "Новая привычка"
+        titleLabel.text = "new_habit".localized
         titleLabel.textAlignment = .center
         titleLabel.numberOfLines = 0
         titleLabel.textColor = .ypBlackDay
@@ -251,7 +250,7 @@ final class CreateHabitViewController: UIViewController {
     }
     
     private func setupTextFieldOfHabitName() {
-        textFieldOfHabitName.placeholder = "Введите название трекера"
+        textFieldOfHabitName.placeholder = "enter_tracker_name".localized
         textFieldOfHabitName.textColor = .ypBlackDay
         textFieldOfHabitName.backgroundColor = .ypBackgroundDay
         textFieldOfHabitName.layer.masksToBounds = true
@@ -350,10 +349,10 @@ final class CreateHabitViewController: UIViewController {
     }
     
     private func getDefaultCategory() -> TrackerCategory {
-        if let generalCategory = categories.first(where: { $0.title == "Общее" }) {
+        if let generalCategory = categories.first(where: { $0.title == "general".localized }) {
             return generalCategory
         } else {
-            return TrackerCategory(title: "Общее", trackers: [])
+            return TrackerCategory(title: "general".localized, trackers: [])
         }
     }
     
@@ -495,9 +494,9 @@ extension CreateHabitViewController: UICollectionViewDelegate {
         }
         
         if indexPath.section == 0 {
-            headerView.configure(with: "Emoji")
+            headerView.configure(with: "emoji".localized)
         } else {
-            headerView.configure(with: "Цвет")
+            headerView.configure(with: "color".localized)
         }
         
         return headerView
@@ -579,13 +578,13 @@ extension CreateHabitViewController: CategorySelectionDelegate {
         
         if let category = category {
             settingsOptions[0] = SettingsOption(
-                title: "Категория",
+                title: "category".localized,
                 subtitle: category.title,
                 type: .category
             )
         } else {
             settingsOptions[0] = SettingsOption(
-                title: "Категория",
+                title: "category".localized,
                 subtitle: nil,
                 type: .category
             )

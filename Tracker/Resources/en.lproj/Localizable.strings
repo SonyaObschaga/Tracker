@@ -1,0 +1,61 @@
+// MARK: - Common Actions
+"cancel" = "Cancel";
+"create" = "Create";
+"save" = "Save";
+"edit" = "Edit";
+"delete" = "Delete";
+"done" = "Done";
+"add" = "Add";
+"search" = "Search";
+"ok" = "OK";
+
+// MARK: - Main Screens
+"trackers" = "Trackers";
+"statistics" = "Statistics";
+"new_habit" = "New habit";
+"new_event" = "New event";
+"what_to_track" = "What will we track?";
+
+// MARK: - Onboarding
+"track_only_what_you_want" = "Track only\nwhat you want";
+"even_if_not_water_and_yoga" = "Even if it's not\nliters of water and yoga";
+"that_is_technology" = "That's technology!";
+
+// MARK: - Tracker Creation
+"enter_tracker_name" = "Enter tracker name";
+"character_limit_38" = "Character limit 38";
+"category" = "Category";
+"schedule" = "Schedule";
+"every_day" = "Every day";
+"emoji" = "Emoji";
+"color" = "Color";
+"general" = "General";
+
+// MARK: - Categories
+"edit_category" = "Edit category";
+"new_category" = "New category";
+"enter_category_name" = "Enter category name";
+"habits_events_grouped" = "Habits and events can be\ngrouped by meaning";
+"add_category" = "Add category";
+"confirm_category_deletion" = "Are you sure you don't need this category?";
+"delete_question" = "Delete?";
+
+// MARK: - Alerts & Errors
+"error" = "Error";
+
+// MARK: - Days of Week
+"monday" = "Monday";
+"tuesday" = "Tuesday";
+"wednesday" = "Wednesday";
+"thursday" = "Thursday";
+"friday" = "Friday";
+"saturday" = "Saturday";
+"sunday" = "Sunday";
+
+"mon" = "Mon";
+"tue" = "Tue";
+"wed" = "Wed";
+"thu" = "Thu";
+"fri" = "Fri";
+"sat" = "Sat";
+"sun" = "Sun";

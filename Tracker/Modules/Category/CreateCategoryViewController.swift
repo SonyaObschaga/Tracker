@@ -47,7 +47,7 @@ final class CreateCategoryViewController: UIViewController {
     }
     
     private func setupTitleLabel() {
-        titleLabel.text = "Новая категория"
+        titleLabel.text = "new_category".localized
         titleLabel.textAlignment = .center
         titleLabel.numberOfLines = 0
         titleLabel.textColor = .ypBlackDay
@@ -63,7 +63,7 @@ final class CreateCategoryViewController: UIViewController {
     }
     
     private func setuptextFieldOfCategoryName() {
-        textFieldOfCategoryName.placeholder = "Введите название категории"
+        textFieldOfCategoryName.placeholder = "enter_category_name".localized
         textFieldOfCategoryName.textColor = .ypBlackDay
         textFieldOfCategoryName.backgroundColor = .ypBackgroundDay
         textFieldOfCategoryName.layer.masksToBounds = true
@@ -94,7 +94,7 @@ final class CreateCategoryViewController: UIViewController {
         doneButton.layer.cornerRadius = 16
         doneButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         
-        doneButton.setTitle("Готово", for: .normal)
+        doneButton.setTitle("done".localized, for: .normal)
         doneButton.setTitleColor(.ypWhiteDay, for: .normal)
         
         doneButton.translatesAutoresizingMaskIntoConstraints = false

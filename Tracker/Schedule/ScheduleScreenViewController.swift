@@ -49,7 +49,7 @@ final class ScheduleScreenViewController: UIViewController {
     }
     
     private func setupTitleLabel() {
-        titleLabel.text = "Расписание"
+        titleLabel.text = "schedule".localized
         titleLabel.textAlignment = .center
         titleLabel.numberOfLines = 0
         titleLabel.textColor = .ypBlackDay
@@ -97,7 +97,7 @@ final class ScheduleScreenViewController: UIViewController {
         doneButton.layer.masksToBounds = true
         doneButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         
-        doneButton.setTitle("Готово", for: .normal)
+        doneButton.setTitle("done".localized, for: .normal)
         doneButton.setTitleColor(.ypWhiteDay, for: .normal)
         
         doneButton.addTarget(self, action: #selector(doneButtonTapped), for: .touchUpInside)

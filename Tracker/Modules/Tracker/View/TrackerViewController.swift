@@ -157,7 +157,7 @@ class TrackerViewController: UIViewController {
     }
     
     private func setupSearchBar() {
-        searchBar.placeholder = "Поиск"
+        searchBar.placeholder = "search".localized
         searchBar.backgroundImage = UIImage()
         searchBar.backgroundColor = .clear
         searchBar.barTintColor = .clear
@@ -175,7 +175,7 @@ class TrackerViewController: UIViewController {
     }
     
     private func setupTitleLabel() {
-        titleLabel.text = "Трекеры"
+        titleLabel.text = "trackers".localized
         titleLabel.font = .systemFont(ofSize: 34, weight: .bold)
         titleLabel.textColor = .label
         titleLabel.textAlignment = .left
@@ -220,7 +220,7 @@ class TrackerViewController: UIViewController {
         ])
         
         let placeholderLabel = UILabel()
-        placeholderLabel.text = "Что будем отслеживать?"
+        placeholderLabel.text = "what_to_track".localized
         placeholderLabel.textAlignment = .center
         placeholderLabel.font = UIFont.systemFont(ofSize: 12, weight: .medium)
         placeholderLabel.textColor = .label
@@ -333,7 +333,7 @@ extension TrackerViewController: TrackerCellDelegate {
                 
                 updateCellState(at: indexPath, trackerId: id)
             } catch {
-                print("Ошибка сохранения выполнения трекера: \(error)")
+                assertionFailure(error.localizedDescription)
             }
         }
     }
@@ -350,7 +350,7 @@ extension TrackerViewController: TrackerCellDelegate {
                 
                 updateCellState(at: indexPath, trackerId: id)
             } catch {
-                print("Ошибка удаления выполнения трекера: \(error)")
+                assertionFailure(error.localizedDescription)
             }
         }
     }

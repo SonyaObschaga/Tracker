@@ -1,0 +1,61 @@
+// MARK: - Common Actions
+"cancel" = "Отменить";
+"create" = "Создать";
+"save" = "Сохранить";
+"edit" = "Редактировать";
+"delete" = "Удалить";
+"done" = "Готово";
+"add" = "Добавить";
+"search" = "Поиск";
+"ok" = "OK";
+
+// MARK: - Main Screens
+"trackers" = "Трекеры";
+"statistics" = "Статистика";
+"new_habit" = "Новая привычка";
+"new_event" = "Новое событие";
+"what_to_track" = "Что будем отслеживать?";
+
+// MARK: - Onboarding
+"track_only_what_you_want" = "Отслеживайте только\nто, что хотите";
+"even_if_not_water_and_yoga" = "Даже если это\nне литры воды и йога";
+"that_is_technology" = "Вот это технологии!";
+
+// MARK: - Tracker Creation
+"enter_tracker_name" = "Введите название трекера";
+"character_limit_38" = "Ограничение 38 символов";
+"category" = "Категория";
+"schedule" = "Расписание";
+"every_day" = "Каждый день";
+"emoji" = "Emoji";
+"color" = "Цвет";
+"general" = "Общее";
+
+// MARK: - Categories
+"edit_category" = "Редактирование категории";
+"new_category" = "Новая категория";
+"enter_category_name" = "Введите название категории";
+"habits_events_grouped" = "Привычки и события можно\nобъединить по смыслу";
+"add_category" = "Добавить категорию";
+"confirm_category_deletion" = "Эта категория точно не нужна?";
+"delete_question" = "Удалить?";
+
+// MARK: - Alerts & Errors
+"error" = "Ошибка";
+
+// MARK: - Days of Week
+"monday" = "Понедельник";
+"tuesday" = "Вторник";
+"wednesday" = "Среда";
+"thursday" = "Четверг";
+"friday" = "Пятница";
+"saturday" = "Суббота";
+"sunday" = "Воскресенье";
+
+"mon" = "Пн";
+"tue" = "Вт";
+"wed" = "Ср";
+"thu" = "Чт";
+"fri" = "Пт";
+"sat" = "Сб";
+"sun" = "Вс";

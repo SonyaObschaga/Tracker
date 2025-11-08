@@ -23,6 +23,7 @@ final class CreateHabitViewController: UIViewController {
     // MARK: - Private Properties
     private var trackerStore: TrackerStore?
     private var trackerCategoryStore: TrackerCategoryStore?
+    private var trackerRecordStore: TrackerRecordStore?
     private var selectedSchedule: [Weekday] = []
     private var selectedCategory: TrackerCategory?
     private var settingsOptions: [SettingsOption] = [
@@ -37,11 +38,13 @@ final class CreateHabitViewController: UIViewController {
     private let contentView = UIView()
     private let buttonsContainer = UIView()
     private let titleLabel = UILabel()
+    private let daysCountLabel = UILabel()
     private let textFieldOfHabitName = UITextField()
     private let cancelButton = UIButton()
     private let createButton = UIButton()
     private let tableView = UITableView()
     private var tableViewTopConstraint: NSLayoutConstraint?
+    private var textFieldTopConstraint: NSLayoutConstraint?
     
     private lazy var warningLabel: UILabel = {
         let label = UILabel()
@@ -67,8 +70,6 @@ final class CreateHabitViewController: UIViewController {
         return collectionView
     }()
     
-    
-    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -83,6 +84,7 @@ final class CreateHabitViewController: UIViewController {
     private func setupStores() {
         trackerStore = TrackerStore()
         trackerCategoryStore = TrackerCategoryStore()
+        trackerRecordStore = TrackerRecordStore()
     }
     
     // MARK: - Actions
@@ -132,6 +134,7 @@ final class CreateHabitViewController: UIViewController {
         setupScrollView()
         setupContentView()
         setupTitleLabel()
+        setupDaysCountLabel()
         setupTextFieldOfHabitName()
         setupWarningLabel()
         setupTableViewOfHabits()
@@ -199,7 +202,6 @@ final class CreateHabitViewController: UIViewController {
             stackView.heightAnchor.constraint(equalToConstant: 60)
         ])
         
-        // Обновляем кнопку после настройки, если мы в режиме редактирования
         if isEditingMode {
             updateCreateButtonForEditingMode()
         }
@@ -272,6 +274,21 @@ final class CreateHabitViewController: UIViewController {
         ])
     }
     
+    private func setupDaysCountLabel() {
+        daysCountLabel.textAlignment = .center
+        daysCountLabel.textColor = .ypBlackDay
+        daysCountLabel.font = UIFont.systemFont(ofSize: 32, weight: .bold)
+        daysCountLabel.numberOfLines = 1
+        daysCountLabel.isHidden = true // Hidden by default, will be shown in editing mode
+        daysCountLabel.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(daysCountLabel)
+        
+        NSLayoutConstraint.activate([
+            daysCountLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            daysCountLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 16)
+        ])
+    }
+    
     private func setupTextFieldOfHabitName() {
         textFieldOfHabitName.placeholder = "enter_tracker_name".localized
         textFieldOfHabitName.textColor = .ypBlackDay
@@ -290,11 +307,14 @@ final class CreateHabitViewController: UIViewController {
         textFieldOfHabitName.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(textFieldOfHabitName)
         
+        // Initially set constraint to titleLabel, will be updated in setupEditingMode if needed
+        textFieldTopConstraint = textFieldOfHabitName.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38)
+        textFieldTopConstraint?.isActive = true
+        
         NSLayoutConstraint.activate([
             textFieldOfHabitName.heightAnchor.constraint(equalToConstant: 75),
             textFieldOfHabitName.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            textFieldOfHabitName.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            textFieldOfHabitName.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38)
+            textFieldOfHabitName.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16)
         ])
     }
     
@@ -385,7 +405,6 @@ final class CreateHabitViewController: UIViewController {
         createButton.isEnabled = isFormValid
         createButton.backgroundColor = isFormValid ? .ypBlackDay : .ypGray
         
-        // В режиме редактирования обновляем заголовок кнопки
         if isEditingMode {
             updateCreateButtonForEditingMode()
         }
@@ -426,7 +445,6 @@ final class CreateHabitViewController: UIViewController {
     private func setupEditingMode() {
         guard let tracker = editingTracker else { return }
         
-        // Обновляем заголовок
         titleLabel.text = "edit_habit".localized
         
         textFieldOfHabitName.text = tracker.title
@@ -443,14 +461,49 @@ final class CreateHabitViewController: UIViewController {
             )
         }
         
+        updateDaysCount()
         updateScheduleSubtitle()
         updateCreateButtonForEditingMode()
         
-        // Обновляем UI элементы после настройки режима редактирования
+        // Show days count label and update constraints
+        daysCountLabel.isHidden = false
+        updateTextFieldConstraint()
+        
         DispatchQueue.main.async { [weak self] in
             self?.collectionView.reloadData()
             self?.tableView.reloadData()
             self?.updateCreateButtonState()
+        }
+    }
+    
+    private func updateDaysCount() {
+        guard let tracker = editingTracker else {
+            daysCountLabel.text = nil
+            return
+        }
+        
+        do {
+            let daysCount = try trackerRecordStore?.completedDaysCount(for: tracker.id) ?? 0
+            daysCountLabel.text = Localization.daysCount(daysCount)
+        } catch {
+            daysCountLabel.text = Localization.daysCount(0)
+        }
+    }
+    
+    private func updateTextFieldConstraint() {
+        textFieldTopConstraint?.isActive = false
+        
+        if isEditingMode && !daysCountLabel.isHidden {
+            textFieldTopConstraint = textFieldOfHabitName.topAnchor.constraint(equalTo: daysCountLabel.bottomAnchor, constant: 38)
+        } else {
+            textFieldTopConstraint = textFieldOfHabitName.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38)
+        }
+        
+        textFieldTopConstraint?.isActive = true
+        
+        // Force layout update if view is already loaded
+        if view.window != nil {
+            view.layoutIfNeeded()
         }
     }
     

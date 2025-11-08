@@ -289,12 +289,10 @@ class TrackerViewController: UIViewController {
         let category = visibleCategories[indexPath.section]
         let tracker = category.trackers[indexPath.item]
         
-        // Загружаем свежие категории перед редактированием
         loadCategories()
         
-        // Находим полную категорию с трекером из всех категорий
         guard let fullCategory = categories.first(where: { $0.title == category.title }) else { return }
-        
+
         let editVC = CreateHabitViewController()
         editVC.delegate = self
         editVC.categories = categories
@@ -322,7 +320,6 @@ class TrackerViewController: UIViewController {
         alert.addAction(deleteAction)
         alert.addAction(cancelAction)
         
-        // Для iPad необходимо указать sourceView
         if let popover = alert.popoverPresentationController {
             if let cell = collectionView.cellForItem(at: indexPath) {
                 popover.sourceView = cell
@@ -337,7 +334,6 @@ class TrackerViewController: UIViewController {
         do {
             try trackerCategoryStore?.deleteTracker(tracker.id, fromCategory: category.title)
             
-            // Также удаляем записи о выполнении трекера
             try? trackerRecordStore?.deleteRecords(for: tracker.id)
             
             reloadData()
@@ -547,20 +543,14 @@ extension TrackerViewController: CreateHabitDelegate {
     
     func didUpdateTracker(_ tracker: Tracker, in category: TrackerCategory) {
         do {
-            // Загружаем свежие категории
             loadCategories()
             
-            // Если трекер был перемещен в другую категорию, нужно удалить его из старой
-            // и добавить в новую. Сначала найдем старую категорию
             if let oldCategory = categories.first(where: { cat in
                 cat.trackers.contains { $0.id == tracker.id }
             }), oldCategory.title != category.title {
-                // Удаляем из старой категории
                 try trackerCategoryStore?.deleteTracker(tracker.id, fromCategory: oldCategory.title)
-                // Добавляем в новую категорию
                 try trackerCategoryStore?.addTracker(tracker, toCategory: category.title)
             } else {
-                // Обновляем в той же категории
                 guard let oldTracker = categories.first(where: { cat in
                     cat.trackers.contains { $0.id == tracker.id }
                 })?.trackers.first(where: { $0.id == tracker.id }) else {

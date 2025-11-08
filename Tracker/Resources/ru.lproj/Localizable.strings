@@ -46,6 +46,13 @@
 "nothing_analyze" = "Анализировать пока нечего";
 "nothing_found" = "Ничего не найдено";
 
+// MARK: - Filters
+"filters" = "Фильтры";
+"all_trackers" = "Все трекеры";
+"today_trackers" = "Трекеры на сегодня";
+"completed" = "Завершённые";
+"uncompleted" = "Незавершённые";
+
 // MARK: - Alerts & Errors
 "error" = "Ошибка";
 

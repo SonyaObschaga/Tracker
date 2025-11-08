@@ -46,6 +46,13 @@
 "nothing_analyze" = "There is nothing to analyze yet";
 "nothing_found" = "Nothing found";
 
+// MARK: - Filters
+"filters" = "Filters";
+"all_trackers" = "All trackers";
+"today_trackers" = "Trackers for today";
+"completed" = "Completed";
+"uncompleted" = "Uncompleted";
+
 // MARK: - Alerts & Errors
 "error" = "Error";
 

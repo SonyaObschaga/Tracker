@@ -1,7 +1,7 @@
 import UIKit
 
 // MARK: - TrackerViewController
-class TrackerViewController: UIViewController {
+final class TrackerViewController: UIViewController {
     
     // MARK: - UI Elements
     private let searchBar = UISearchBar()
@@ -158,6 +158,7 @@ class TrackerViewController: UIViewController {
     }
     
     @objc private func filterButtonTapped() {
+        AnalyticsManager.shared.trackEvent(.buttonClick(.main, item: .filter))
         let filterVC = FilterViewController()
         filterVC.delegate = self
         filterVC.selectedFilter = currentFilter
@@ -413,6 +414,7 @@ class TrackerViewController: UIViewController {
     
     // MARK: - Context Menu
     private func editTracker(at indexPath: IndexPath) {
+        AnalyticsManager.shared.trackEvent(.buttonClick(.main, item: .edit))
         let category = visibleCategories[indexPath.section]
         let tracker = category.trackers[indexPath.item]
         
@@ -429,6 +431,7 @@ class TrackerViewController: UIViewController {
     }
     
     private func deleteTracker(at indexPath: IndexPath) {
+        AnalyticsManager.shared.trackEvent(.buttonClick(.main, item: .delete))
         let category = visibleCategories[indexPath.section]
         let tracker = category.trackers[indexPath.item]
         

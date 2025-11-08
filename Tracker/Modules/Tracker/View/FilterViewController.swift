@@ -45,7 +45,7 @@ final class FilterViewController: UIViewController {
     }
     
     private func setupTableView() {
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "FilterCell")
+        tableView.register(FilterTableViewCell.self, forCellReuseIdentifier: "FilterCell")
         tableView.dataSource = self
         tableView.delegate = self
         tableView.isScrollEnabled = false
@@ -76,17 +76,16 @@ extension FilterViewController: UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "FilterCell", for: indexPath)
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: "FilterCell", for: indexPath) as? FilterTableViewCell else {
+            return UITableViewCell()
+        }
+        
         let filter = TrackerFilter.allCases[indexPath.row]
+        let isSelected = filter == selectedFilter
+        let shouldShowCheckmark = filter != .all
         
-        cell.textLabel?.text = filter.localizedString
-        cell.textLabel?.font = UIFont.systemFont(ofSize: 17, weight: .regular)
-        cell.backgroundColor = .ypBackgroundDay
+        cell.configure(with: filter, isSelected: isSelected, shouldShowCheckmark: shouldShowCheckmark)
         cell.selectionStyle = .none
-        
-        let shouldShowCheckmark = (filter == selectedFilter) && (filter == .completed || filter == .uncompleted)
-        cell.accessoryType = shouldShowCheckmark ? .checkmark : .none
-        cell.tintColor = .systemBlue
         
         if indexPath.row == TrackerFilter.allCases.count - 1 {
             cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: .greatestFiniteMagnitude)

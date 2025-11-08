@@ -7,6 +7,8 @@ class TrackerViewController: UIViewController {
     private let searchBar = UISearchBar()
     private let contentView = UIView()
     private let placeholderStackView = UIStackView()
+    private let placeholderImageView = UIImageView()
+    private let placeholderLabel = UILabel()
     private let titleLabel = UILabel()
     private let dateLabel = UILabel()
     private var dateButton = UIButton()
@@ -34,6 +36,10 @@ class TrackerViewController: UIViewController {
     private var trackerStore: TrackerStore?
     private var trackerRecordStore: TrackerRecordStore?
     private var trackerCategoryStore: TrackerCategoryStore?
+    private var isSearching: Bool {
+        guard let searchText = searchBar.text else { return false }
+        return !searchText.trimmingCharacters(in: .whitespaces).isEmpty
+    }
     
     // MARK: - Initialization
     override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?)
@@ -104,7 +110,7 @@ class TrackerViewController: UIViewController {
     }
     
     private func applyDateFilter() {
-        let filterText = (searchBar.text ?? "").lowercased()
+        let filterText = (searchBar.text ?? "").lowercased().trimmingCharacters(in: .whitespaces)
         let calendar = Calendar.current
         let weekdayFromCalendar = calendar.component(.weekday, from: currentDate)
         let filterWeekday: Int = weekdayFromCalendar == 1 ? 7 : weekdayFromCalendar - 1
@@ -121,10 +127,18 @@ class TrackerViewController: UIViewController {
         
         visibleCategories = allCategories.compactMap { category in
             let filteredTrackers = category.trackers.filter { tracker in
-                let textCondition = filterText.isEmpty || tracker.title.lowercased().contains(filterText)
                 guard let schedule = tracker.schedule else { return false }
                 let weekday = Weekday(rawValue: filterWeekday) ?? .monday
-                return schedule.contains(weekday) && textCondition
+                let weekdayCondition = schedule.contains(weekday)
+                
+                guard !filterText.isEmpty else {
+                    return weekdayCondition
+                }
+                
+                let titleMatches = tracker.title.lowercased().contains(filterText)
+                let categoryMatches = category.title.lowercased().contains(filterText)
+                
+                return weekdayCondition && (titleMatches || categoryMatches)
             }
             
             return filteredTrackers.isEmpty ? nil : TrackerCategory(title: category.title, trackers: filteredTrackers)
@@ -231,22 +245,19 @@ class TrackerViewController: UIViewController {
         placeholderStackView.alignment = .center
         placeholderStackView.spacing = 8
         
-        let placeholderImage = UIImageView(image: UIImage(named: "dizzy"))
-        placeholderImage.contentMode = .scaleAspectFit
-        placeholderImage.translatesAutoresizingMaskIntoConstraints = false
+        placeholderImageView.contentMode = .scaleAspectFit
+        placeholderImageView.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            placeholderImage.widthAnchor.constraint(equalToConstant: 80),
-            placeholderImage.heightAnchor.constraint(equalToConstant: 80),
+            placeholderImageView.widthAnchor.constraint(equalToConstant: 80),
+            placeholderImageView.heightAnchor.constraint(equalToConstant: 80),
         ])
         
-        let placeholderLabel = UILabel()
-        placeholderLabel.text = "what_to_track".localized
         placeholderLabel.textAlignment = .center
         placeholderLabel.font = UIFont.systemFont(ofSize: 12, weight: .medium)
         placeholderLabel.textColor = .label
         
-        placeholderStackView.addArrangedSubview(placeholderImage)
+        placeholderStackView.addArrangedSubview(placeholderImageView)
         placeholderStackView.addArrangedSubview(placeholderLabel)
         
         contentView.translatesAutoresizingMaskIntoConstraints = false
@@ -256,6 +267,8 @@ class TrackerViewController: UIViewController {
             placeholderStackView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             placeholderStackView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
         ])
+        
+        updatePlaceholderState()
     }
     
     private func setupCollectionView() {
@@ -282,6 +295,19 @@ class TrackerViewController: UIViewController {
         placeholderStackView.isHidden = !isEmpty
         collectionView.isHidden = isEmpty
         
+        if isEmpty {
+            updatePlaceholderState()
+        }
+    }
+    
+    private func updatePlaceholderState() {
+        if isSearching {
+            placeholderImageView.image = UIImage(named: "nothing_smile")
+            placeholderLabel.text = "nothing_found".localized
+        } else {
+            placeholderImageView.image = UIImage(named: "dizzy")
+            placeholderLabel.text = "what_to_track".localized
+        }
     }
     
     // MARK: - Context Menu
@@ -375,6 +401,24 @@ extension TrackerViewController: UISearchBarDelegate {
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         applyDateFilter()
         searchBar.resignFirstResponder()
+    }
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        applyDateFilter()
+    }
+    
+    func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
+        searchBar.setShowsCancelButton(true, animated: true)
+    }
+    
+    func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
+        searchBar.setShowsCancelButton(false, animated: true)
+    }
+    
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.text = ""
+        searchBar.resignFirstResponder()
+        applyDateFilter()
     }
 }
 

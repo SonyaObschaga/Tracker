@@ -44,6 +44,7 @@
 
 // MARK: - Statistic
 "nothing_analyze" = "Анализировать пока нечего";
+"nothing_found" = "Ничего не найдено";
 
 // MARK: - Alerts & Errors
 "error" = "Ошибка";

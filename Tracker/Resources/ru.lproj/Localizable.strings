@@ -42,6 +42,9 @@
 "confirm_category_deletion" = "Эта категория точно не нужна?";
 "delete_question" = "Удалить?";
 
+// MARK: - Statistic
+"nothing_analyze" = "Анализировать пока нечего";
+
 // MARK: - Alerts & Errors
 "error" = "Ошибка";
 

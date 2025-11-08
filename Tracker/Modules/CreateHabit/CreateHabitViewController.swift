@@ -279,7 +279,7 @@ final class CreateHabitViewController: UIViewController {
         daysCountLabel.textColor = .ypBlackDay
         daysCountLabel.font = UIFont.systemFont(ofSize: 32, weight: .bold)
         daysCountLabel.numberOfLines = 1
-        daysCountLabel.isHidden = true // Hidden by default, will be shown in editing mode
+        daysCountLabel.isHidden = true
         daysCountLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(daysCountLabel)
         
@@ -307,7 +307,6 @@ final class CreateHabitViewController: UIViewController {
         textFieldOfHabitName.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(textFieldOfHabitName)
         
-        // Initially set constraint to titleLabel, will be updated in setupEditingMode if needed
         textFieldTopConstraint = textFieldOfHabitName.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38)
         textFieldTopConstraint?.isActive = true
         
@@ -465,7 +464,6 @@ final class CreateHabitViewController: UIViewController {
         updateScheduleSubtitle()
         updateCreateButtonForEditingMode()
         
-        // Show days count label and update constraints
         daysCountLabel.isHidden = false
         updateTextFieldConstraint()
         
@@ -501,7 +499,6 @@ final class CreateHabitViewController: UIViewController {
         
         textFieldTopConstraint?.isActive = true
         
-        // Force layout update if view is already loaded
         if view.window != nil {
             view.layoutIfNeeded()
         }

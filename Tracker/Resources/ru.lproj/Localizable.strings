@@ -30,6 +30,8 @@
 "emoji" = "Emoji";
 "color" = "Цвет";
 "general" = "Общее";
+"edit_habit" = "Редактирование привычки";
+"confirm_tracker_deletion" = "Этот трекер точно не нужен?";
 
 // MARK: - Categories
 "edit_category" = "Редактирование категории";

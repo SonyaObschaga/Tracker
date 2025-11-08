@@ -77,4 +77,16 @@ final class TrackerRecordStore {
         let count = try context.count(for: fetchRequest)
         return count
     }
+    
+    func deleteRecords(for trackerId: UUID) throws {
+        let fetchRequest: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "trackerId == %@", trackerId.uuidString)
+        
+        let results = try context.fetch(fetchRequest)
+        for record in results {
+            context.delete(record)
+        }
+        
+        try context.save()
+    }
 }

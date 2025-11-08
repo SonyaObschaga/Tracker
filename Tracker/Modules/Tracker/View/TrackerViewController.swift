@@ -52,6 +52,7 @@ class TrackerViewController: UIViewController {
         super.viewDidLoad()
         setupStores()
         setupUI()
+        loadCategories()
         reloadData()
         loadCompletedTrackers()
     }
@@ -78,9 +79,14 @@ class TrackerViewController: UIViewController {
         completedTrackers = (try? trackerRecordStore?.fetchRecords()) ?? []
     }
     
+    private func loadCategories() {
+        categories = trackerCategoryStore?.fetchCategories() ?? []
+    }
+    
     // MARK: - Actions
     @objc private func plusButtonTapped() {
         AnalyticsManager.shared.trackEvent(.buttonClick(.main, item: .addTrack))
+        loadCategories()
         let createHabitVC = CreateHabitViewController()
         createHabitVC.delegate = self
         createHabitVC.categories = categories
@@ -105,10 +111,13 @@ class TrackerViewController: UIViewController {
         
         guard let allCategories = trackerCategoryStore?.fetchCategories() else {
             visibleCategories = []
+            categories = []
             collectionView.reloadData()
             updatePlaceholderVisibility()
             return
         }
+        
+        categories = allCategories
         
         visibleCategories = allCategories.compactMap { category in
             let filteredTrackers = category.trackers.filter { tracker in
@@ -274,6 +283,95 @@ class TrackerViewController: UIViewController {
         collectionView.isHidden = isEmpty
         
     }
+    
+    // MARK: - Context Menu
+    private func editTracker(at indexPath: IndexPath) {
+        let category = visibleCategories[indexPath.section]
+        let tracker = category.trackers[indexPath.item]
+        
+        // Загружаем свежие категории перед редактированием
+        loadCategories()
+        
+        // Находим полную категорию с трекером из всех категорий
+        guard let fullCategory = categories.first(where: { $0.title == category.title }) else { return }
+        
+        let editVC = CreateHabitViewController()
+        editVC.delegate = self
+        editVC.categories = categories
+        editVC.editingTracker = tracker
+        editVC.editingCategory = fullCategory
+        present(editVC, animated: true)
+    }
+    
+    private func deleteTracker(at indexPath: IndexPath) {
+        let category = visibleCategories[indexPath.section]
+        let tracker = category.trackers[indexPath.item]
+        
+        let alert = UIAlertController(
+            title: "confirm_tracker_deletion".localized,
+            message: nil,
+            preferredStyle: .actionSheet
+        )
+        
+        let deleteAction = UIAlertAction(title: "delete_question".localized, style: .destructive) { [weak self] _ in
+            self?.performTrackerDeletion(tracker: tracker, category: category)
+        }
+        
+        let cancelAction = UIAlertAction(title: "cancel".localized, style: .cancel)
+        
+        alert.addAction(deleteAction)
+        alert.addAction(cancelAction)
+        
+        // Для iPad необходимо указать sourceView
+        if let popover = alert.popoverPresentationController {
+            if let cell = collectionView.cellForItem(at: indexPath) {
+                popover.sourceView = cell
+                popover.sourceRect = cell.bounds
+            }
+        }
+        
+        present(alert, animated: true)
+    }
+    
+    private func performTrackerDeletion(tracker: Tracker, category: TrackerCategory) {
+        do {
+            try trackerCategoryStore?.deleteTracker(tracker.id, fromCategory: category.title)
+            
+            // Также удаляем записи о выполнении трекера
+            try? trackerRecordStore?.deleteRecords(for: tracker.id)
+            
+            reloadData()
+            loadCompletedTrackers()
+        } catch {
+            let alert = UIAlertController(
+                title: "error".localized,
+                message: error.localizedDescription,
+                preferredStyle: .alert
+            )
+            let okAction = UIAlertAction(title: "ok".localized, style: .default)
+            alert.addAction(okAction)
+            present(alert, animated: true)
+        }
+    }
+    
+    private func createContextMenu(for indexPath: IndexPath) -> UIMenu {
+        let editAction = UIAction(
+            title: "edit".localized,
+            image: nil
+        ) { [weak self] _ in
+            self?.editTracker(at: indexPath)
+        }
+        
+        let deleteAction = UIAction(
+            title: "delete".localized,
+            image: nil,
+            attributes: .destructive
+        ) { [weak self] _ in
+            self?.deleteTracker(at: indexPath)
+        }
+        
+        return UIMenu(title: "", children: [editAction, deleteAction])
+    }
 }
 
 // MARK: - UISearchBarDelegate
@@ -396,6 +494,33 @@ extension TrackerViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         AnalyticsManager.shared.trackEvent(.buttonClick(.main, item: .track))
     }
+    
+    func collectionView(_ collectionView: UICollectionView, contextMenuConfigurationForItemAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
+        let identifier = "\(indexPath.section)-\(indexPath.item)" as NSString
+        
+        return UIContextMenuConfiguration(
+            identifier: identifier,
+            previewProvider: nil
+        ) { [weak self] _ in
+            return self?.createContextMenu(for: indexPath)
+        }
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, previewForHighlightingContextMenuWithConfiguration configuration: UIContextMenuConfiguration) -> UITargetedPreview? {
+        guard
+            let identifier = configuration.identifier as? String,
+            let components = identifier.split(separator: "-").compactMap({ Int($0) }),
+            components.count == 2,
+            let cell = collectionView.cellForItem(at: IndexPath(item: components[1], section: components[0]))
+        else {
+            return nil
+        }
+        
+        let parameters = UIPreviewParameters()
+        parameters.backgroundColor = .clear
+        
+        return UITargetedPreview(view: cell, parameters: parameters)
+    }
 }
 
 // MARK: - UICollectionViewDelegateFlowLayout
@@ -417,6 +542,43 @@ extension TrackerViewController: CreateHabitDelegate {
             reloadData()
         } catch {
             assertionFailure(error.localizedDescription)
+        }
+    }
+    
+    func didUpdateTracker(_ tracker: Tracker, in category: TrackerCategory) {
+        do {
+            // Загружаем свежие категории
+            loadCategories()
+            
+            // Если трекер был перемещен в другую категорию, нужно удалить его из старой
+            // и добавить в новую. Сначала найдем старую категорию
+            if let oldCategory = categories.first(where: { cat in
+                cat.trackers.contains { $0.id == tracker.id }
+            }), oldCategory.title != category.title {
+                // Удаляем из старой категории
+                try trackerCategoryStore?.deleteTracker(tracker.id, fromCategory: oldCategory.title)
+                // Добавляем в новую категорию
+                try trackerCategoryStore?.addTracker(tracker, toCategory: category.title)
+            } else {
+                // Обновляем в той же категории
+                guard let oldTracker = categories.first(where: { cat in
+                    cat.trackers.contains { $0.id == tracker.id }
+                })?.trackers.first(where: { $0.id == tracker.id }) else {
+                    return
+                }
+                try trackerCategoryStore?.updateTracker(oldTracker, to: tracker, inCategory: category.title)
+            }
+            reloadData()
+            loadCategories()
+        } catch {
+            let alert = UIAlertController(
+                title: "error".localized,
+                message: error.localizedDescription,
+                preferredStyle: .alert
+            )
+            let okAction = UIAlertAction(title: "ok".localized, style: .default)
+            alert.addAction(okAction)
+            present(alert, animated: true)
         }
     }
 }

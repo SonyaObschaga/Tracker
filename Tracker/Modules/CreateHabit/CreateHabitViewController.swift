@@ -16,6 +16,9 @@ final class CreateHabitViewController: UIViewController {
     // MARK: - Properties
     var categories: [TrackerCategory] = []
     weak var delegate: CreateHabitDelegate?
+    var editingTracker: Tracker?
+    var editingCategory: TrackerCategory?
+    var isEditingMode: Bool { return editingTracker != nil }
 
     // MARK: - Private Properties
     private var trackerStore: TrackerStore?
@@ -72,6 +75,7 @@ final class CreateHabitViewController: UIViewController {
         setupStores()
         setupUI()
         self.textFieldOfHabitName.delegate = self
+        setupEditingMode()
         updateCreateButtonState()
     }
     
@@ -92,15 +96,28 @@ final class CreateHabitViewController: UIViewController {
         
         let categoryToUse = selectedCategory ?? getDefaultCategory()
         
-        let newTracker = Tracker(
-            id: UUID(),
-            title: trackerName,
-            color: selectedColor,
-            emoji: selectedEmoji,
-            schedule: selectedSchedule,
-            isRegular: true)
+        if isEditingMode, let oldTracker = editingTracker {
+            let updatedTracker = Tracker(
+                id: oldTracker.id,
+                title: trackerName,
+                color: selectedColor,
+                emoji: selectedEmoji,
+                schedule: selectedSchedule,
+                isRegular: oldTracker.isRegular)
+            
+            delegate?.didUpdateTracker(updatedTracker, in: categoryToUse)
+        } else {
+            let newTracker = Tracker(
+                id: UUID(),
+                title: trackerName,
+                color: selectedColor,
+                emoji: selectedEmoji,
+                schedule: selectedSchedule,
+                isRegular: true)
+            
+            delegate?.didCreateTracker(newTracker, in: categoryToUse)
+        }
         
-        delegate?.didCreateTracker(newTracker, in: categoryToUse)
         dismiss(animated: true)
     }
     
@@ -181,6 +198,11 @@ final class CreateHabitViewController: UIViewController {
             stackView.bottomAnchor.constraint(equalTo: buttonsContainer.bottomAnchor, constant: -20),
             stackView.heightAnchor.constraint(equalToConstant: 60)
         ])
+        
+        // Обновляем кнопку после настройки, если мы в режиме редактирования
+        if isEditingMode {
+            updateCreateButtonForEditingMode()
+        }
     }
     
     private func setupCancelButton() {
@@ -205,7 +227,8 @@ final class CreateHabitViewController: UIViewController {
         createButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         createButton.isEnabled = false
         
-        createButton.setTitle("create".localized, for: .normal)
+        let buttonTitle = isEditingMode ? "save".localized : "create".localized
+        createButton.setTitle(buttonTitle, for: .normal)
         createButton.setTitleColor(.ypWhiteDay, for: .normal)
         
         createButton.translatesAutoresizingMaskIntoConstraints = false
@@ -235,7 +258,7 @@ final class CreateHabitViewController: UIViewController {
     }
     
     private func setupTitleLabel() {
-        titleLabel.text = "new_habit".localized
+        titleLabel.text = isEditingMode ? "edit_habit".localized : "new_habit".localized
         titleLabel.textAlignment = .center
         titleLabel.numberOfLines = 0
         titleLabel.textColor = .ypBlackDay
@@ -361,6 +384,11 @@ final class CreateHabitViewController: UIViewController {
         
         createButton.isEnabled = isFormValid
         createButton.backgroundColor = isFormValid ? .ypBlackDay : .ypGray
+        
+        // В режиме редактирования обновляем заголовок кнопки
+        if isEditingMode {
+            updateCreateButtonForEditingMode()
+        }
     }
     
     private func showWarningLabel() {
@@ -392,6 +420,43 @@ final class CreateHabitViewController: UIViewController {
         } completion: { _ in
             self.warningLabel.isHidden = true
         }
+    }
+    
+    // MARK: - Private Methods - Editing Mode
+    private func setupEditingMode() {
+        guard let tracker = editingTracker else { return }
+        
+        // Обновляем заголовок
+        titleLabel.text = "edit_habit".localized
+        
+        textFieldOfHabitName.text = tracker.title
+        selectedEmoji = tracker.emoji
+        selectedColor = tracker.color
+        selectedSchedule = tracker.schedule ?? []
+        selectedCategory = editingCategory
+        
+        if let category = editingCategory {
+            settingsOptions[0] = SettingsOption(
+                title: "category".localized,
+                subtitle: category.title,
+                type: .category
+            )
+        }
+        
+        updateScheduleSubtitle()
+        updateCreateButtonForEditingMode()
+        
+        // Обновляем UI элементы после настройки режима редактирования
+        DispatchQueue.main.async { [weak self] in
+            self?.collectionView.reloadData()
+            self?.tableView.reloadData()
+            self?.updateCreateButtonState()
+        }
+    }
+    
+    private func updateCreateButtonForEditingMode() {
+        let buttonTitle = isEditingMode ? "save".localized : "create".localized
+        createButton.setTitle(buttonTitle, for: .normal)
     }
 }
 

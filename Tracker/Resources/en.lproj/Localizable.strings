@@ -30,6 +30,8 @@
 "emoji" = "Emoji";
 "color" = "Color";
 "general" = "General";
+"edit_habit" = "Edit habit";
+"confirm_tracker_deletion" = "Are you sure you don't need this tracker?";
 
 // MARK: - Categories
 "edit_category" = "Edit category";

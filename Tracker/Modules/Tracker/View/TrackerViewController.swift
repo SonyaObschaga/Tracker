@@ -507,19 +507,19 @@ extension TrackerViewController: UICollectionViewDelegate {
     }
     
     func collectionView(_ collectionView: UICollectionView, previewForHighlightingContextMenuWithConfiguration configuration: UIContextMenuConfiguration) -> UITargetedPreview? {
-        guard
-            let identifier = configuration.identifier as? String,
-            let components = identifier.split(separator: "-").compactMap({ Int($0) }),
-            components.count == 2,
-            let cell = collectionView.cellForItem(at: IndexPath(item: components[1], section: components[0]))
-        else {
-            return nil
+        guard let identifier = configuration.identifier as? String else { return nil }
+        
+        let components = identifier.split(separator: "-").compactMap { Int($0) }
+        if components.count == 2 {
+            let indexPath = IndexPath(item: components[1], section: components[0])
+            if let cell = collectionView.cellForItem(at: indexPath) {
+                let parameters = UIPreviewParameters()
+                parameters.backgroundColor = .clear
+                return UITargetedPreview(view: cell, parameters: parameters)
+            }
         }
         
-        let parameters = UIPreviewParameters()
-        parameters.backgroundColor = .clear
-        
-        return UITargetedPreview(view: cell, parameters: parameters)
+        return nil
     }
 }
 

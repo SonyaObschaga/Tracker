@@ -56,6 +56,16 @@ class TrackerViewController: UIViewController {
         loadCompletedTrackers()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        AnalyticsManager.shared.trackEvent(.screenOpen(.main))
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        AnalyticsManager.shared.trackEvent(.screenClose(.main))
+    }
+    
     // MARK: - TrackerStore Setup
     private func setupStores() {
         trackerStore = TrackerStore()
@@ -70,6 +80,7 @@ class TrackerViewController: UIViewController {
     
     // MARK: - Actions
     @objc private func plusButtonTapped() {
+        AnalyticsManager.shared.trackEvent(.buttonClick(.main, item: .addTrack))
         let createHabitVC = CreateHabitViewController()
         createHabitVC.delegate = self
         createHabitVC.categories = categories
@@ -324,6 +335,8 @@ extension TrackerViewController: UICollectionViewDataSource {
 // MARK: - TrackerCellDelegate
 extension TrackerViewController: TrackerCellDelegate {
     func completeTracker(id: UUID, at indexPath: IndexPath) {
+        AnalyticsManager.shared.trackEvent(.buttonClick(.main, item: .track))
+        
         let today = Date()
         let calendar = Calendar.current
         if calendar.isDate(currentDate, inSameDayAs: today) || currentDate < today {
@@ -378,6 +391,10 @@ extension TrackerViewController: UICollectionViewDelegate {
             return headerView
         }
         return UICollectionReusableView()
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        AnalyticsManager.shared.trackEvent(.buttonClick(.main, item: .track))
     }
 }
 

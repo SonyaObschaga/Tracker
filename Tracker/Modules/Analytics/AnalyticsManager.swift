@@ -33,18 +33,20 @@ struct AnalyticsEvent {
     // MARK: - Screen Events
     static func screenOpen(_ screen: Screen) -> AnalyticsEvent {
         return AnalyticsEvent(
-            name: "screen_open",
+            name: "screen_event",
             parameters: [
-                "screen_name": screen.rawValue
+                "event": "open",
+                "screen": screen.rawValue
             ]
         )
     }
     
     static func screenClose(_ screen: Screen) -> AnalyticsEvent {
         return AnalyticsEvent(
-            name: "screen_close",
+            name: "screen_event",
             parameters: [
-                "screen_name": screen.rawValue
+                "event": "close",
+                "screen": screen.rawValue
             ]
         )
     }
@@ -52,26 +54,25 @@ struct AnalyticsEvent {
     // MARK: - Button Click Events
     static func buttonClick(_ screen: Screen, item: ButtonItem) -> AnalyticsEvent {
         return AnalyticsEvent(
-            name: "button_click",
+            name: "ui_event",
             parameters: [
-                "screen_name": screen.rawValue,
-                "item_name": item.rawValue
+                "event": "click",
+                "screen": screen.rawValue,
+                "item": item.rawValue
             ]
         )
     }
     
     static func userAction(_ screen: Screen, event: String, item: String? = nil) -> AnalyticsEvent {
-        var parameters: [String: Any] = [
-            "screen_name": screen.rawValue,
-            "action_type": event
-        ]
+        var parameters: [String: Any] = ["event": event,
+                                         "screen": screen.rawValue]
         
         if let item = item {
-            parameters["item_name"] = item
+            parameters["item"] = item
         }
         
         return AnalyticsEvent(
-            name: "user_action",
+            name: "ui_event",
             parameters: parameters
         )
     }

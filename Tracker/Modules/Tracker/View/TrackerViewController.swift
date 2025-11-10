@@ -587,6 +587,7 @@ extension TrackerViewController: TrackerCellDelegate {
                 loadCompletedTrackers()
                 updateCellState(at: indexPath, trackerId: id)
                 applyDateFilter()
+                NotificationCenter.default.post(name: .trackerRecordChanged, object: nil)
             } catch {
                 assertionFailure(error.localizedDescription)
             }
@@ -602,6 +603,7 @@ extension TrackerViewController: TrackerCellDelegate {
                 loadCompletedTrackers()
                 updateCellState(at: indexPath, trackerId: id)
                 applyDateFilter()
+                NotificationCenter.default.post(name: .trackerRecordChanged, object: nil)
             } catch {
                 assertionFailure(error.localizedDescription)
             }

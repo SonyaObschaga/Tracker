@@ -82,7 +82,8 @@ extension FilterViewController: UITableViewDataSource {
         
         let filter = TrackerFilter.allCases[indexPath.row]
         let isSelected = filter == selectedFilter
-        let shouldShowCheckmark = filter != .all
+        let filtersWithoutCheckmark: [TrackerFilter] = [.all, .today]
+        let shouldShowCheckmark = !filtersWithoutCheckmark.contains(filter)
         
         cell.configure(with: filter, isSelected: isSelected, shouldShowCheckmark: shouldShowCheckmark)
         cell.selectionStyle = .none

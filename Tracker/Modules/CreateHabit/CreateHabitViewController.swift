@@ -16,15 +16,19 @@ final class CreateHabitViewController: UIViewController {
     // MARK: - Properties
     var categories: [TrackerCategory] = []
     weak var delegate: CreateHabitDelegate?
+    var editingTracker: Tracker?
+    var editingCategory: TrackerCategory?
+    var isEditingMode: Bool { return editingTracker != nil }
 
     // MARK: - Private Properties
     private var trackerStore: TrackerStore?
     private var trackerCategoryStore: TrackerCategoryStore?
+    private var trackerRecordStore: TrackerRecordStore?
     private var selectedSchedule: [Weekday] = []
     private var selectedCategory: TrackerCategory?
     private var settingsOptions: [SettingsOption] = [
-        SettingsOption(title: "Категория", subtitle: nil, type: .category),
-        SettingsOption(title: "Расписание", subtitle: nil, type: .schedule)
+        SettingsOption(title: "category".localized, subtitle: nil, type: .category),
+        SettingsOption(title: "schedule".localized, subtitle: nil, type: .schedule)
     ]
     private var selectedEmoji: String?
     private var selectedColor: UIColor?
@@ -34,15 +38,17 @@ final class CreateHabitViewController: UIViewController {
     private let contentView = UIView()
     private let buttonsContainer = UIView()
     private let titleLabel = UILabel()
+    private let daysCountLabel = UILabel()
     private let textFieldOfHabitName = UITextField()
     private let cancelButton = UIButton()
     private let createButton = UIButton()
     private let tableView = UITableView()
     private var tableViewTopConstraint: NSLayoutConstraint?
+    private var textFieldTopConstraint: NSLayoutConstraint?
     
     private lazy var warningLabel: UILabel = {
         let label = UILabel()
-        label.text = "Ограничение 38 символов"
+        label.text = "character_limit_38".localized
         label.font = UIFont.systemFont(ofSize: 17, weight: .regular)
         label.textColor = .ypRed
         label.isHidden = true
@@ -64,14 +70,13 @@ final class CreateHabitViewController: UIViewController {
         return collectionView
     }()
     
-    
-    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupStores()
         setupUI()
         self.textFieldOfHabitName.delegate = self
+        setupEditingMode()
         updateCreateButtonState()
     }
     
@@ -79,6 +84,7 @@ final class CreateHabitViewController: UIViewController {
     private func setupStores() {
         trackerStore = TrackerStore()
         trackerCategoryStore = TrackerCategoryStore()
+        trackerRecordStore = TrackerRecordStore()
     }
     
     // MARK: - Actions
@@ -92,15 +98,28 @@ final class CreateHabitViewController: UIViewController {
         
         let categoryToUse = selectedCategory ?? getDefaultCategory()
         
-        let newTracker = Tracker(
-            id: UUID(),
-            title: trackerName,
-            color: selectedColor,
-            emoji: selectedEmoji,
-            schedule: selectedSchedule,
-            isRegular: true)
+        if isEditingMode, let oldTracker = editingTracker {
+            let updatedTracker = Tracker(
+                id: oldTracker.id,
+                title: trackerName,
+                color: selectedColor,
+                emoji: selectedEmoji,
+                schedule: selectedSchedule,
+                isRegular: oldTracker.isRegular)
+            
+            delegate?.didUpdateTracker(updatedTracker, in: categoryToUse)
+        } else {
+            let newTracker = Tracker(
+                id: UUID(),
+                title: trackerName,
+                color: selectedColor,
+                emoji: selectedEmoji,
+                schedule: selectedSchedule,
+                isRegular: true)
+            
+            delegate?.didCreateTracker(newTracker, in: categoryToUse)
+        }
         
-        delegate?.didCreateTracker(newTracker, in: categoryToUse)
         dismiss(animated: true)
     }
     
@@ -115,6 +134,7 @@ final class CreateHabitViewController: UIViewController {
         setupScrollView()
         setupContentView()
         setupTitleLabel()
+        setupDaysCountLabel()
         setupTextFieldOfHabitName()
         setupWarningLabel()
         setupTableViewOfHabits()
@@ -181,6 +201,10 @@ final class CreateHabitViewController: UIViewController {
             stackView.bottomAnchor.constraint(equalTo: buttonsContainer.bottomAnchor, constant: -20),
             stackView.heightAnchor.constraint(equalToConstant: 60)
         ])
+        
+        if isEditingMode {
+            updateCreateButtonForEditingMode()
+        }
     }
     
     private func setupCancelButton() {
@@ -190,7 +214,7 @@ final class CreateHabitViewController: UIViewController {
         cancelButton.layer.borderColor = UIColor.ypRed.cgColor
         cancelButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         
-        cancelButton.setTitle("Отменить", for: .normal)
+        cancelButton.setTitle("cancel".localized, for: .normal)
         cancelButton.setTitleColor(.ypRed, for: .normal)
         
         cancelButton.addTarget(self, action: #selector(didTapCancelButton), for: .touchUpInside)
@@ -205,7 +229,8 @@ final class CreateHabitViewController: UIViewController {
         createButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         createButton.isEnabled = false
         
-        createButton.setTitle("Создать", for: .normal)
+        let buttonTitle = isEditingMode ? "save".localized : "create".localized
+        createButton.setTitle(buttonTitle, for: .normal)
         createButton.setTitleColor(.ypWhiteDay, for: .normal)
         
         createButton.translatesAutoresizingMaskIntoConstraints = false
@@ -218,25 +243,24 @@ final class CreateHabitViewController: UIViewController {
         if selectedSchedule.isEmpty {
             scheduleText = ""
         } else if selectedSchedule.count == Weekday.allCases.count {
-            scheduleText = "Каждый день"
+            scheduleText = "every_day".localized
         } else {
             let sortedDays = selectedSchedule.sorted { $0.rawValue < $1.rawValue }
             scheduleText = sortedDays.map { $0.shortName }.joined(separator: ", ")
         }
         
         settingsOptions[1] = SettingsOption(
-            title: "Расписание",
+            title: "schedule".localized,
             subtitle: scheduleText.isEmpty ? nil : scheduleText,
             type: .schedule
         )
-        
-        print("Обновляем subtitle: '\(scheduleText)'")
+
         let scheduleIndexPath = IndexPath(row: 1, section: 0)
         tableView.reloadRows(at: [scheduleIndexPath], with: .automatic)
     }
     
     private func setupTitleLabel() {
-        titleLabel.text = "Новая привычка"
+        titleLabel.text = isEditingMode ? "edit_habit".localized : "new_habit".localized
         titleLabel.textAlignment = .center
         titleLabel.numberOfLines = 0
         titleLabel.textColor = .ypBlackDay
@@ -250,8 +274,23 @@ final class CreateHabitViewController: UIViewController {
         ])
     }
     
+    private func setupDaysCountLabel() {
+        daysCountLabel.textAlignment = .center
+        daysCountLabel.textColor = .ypBlackDay
+        daysCountLabel.font = UIFont.systemFont(ofSize: 32, weight: .bold)
+        daysCountLabel.numberOfLines = 1
+        daysCountLabel.isHidden = true
+        daysCountLabel.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(daysCountLabel)
+        
+        NSLayoutConstraint.activate([
+            daysCountLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            daysCountLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 16)
+        ])
+    }
+    
     private func setupTextFieldOfHabitName() {
-        textFieldOfHabitName.placeholder = "Введите название трекера"
+        textFieldOfHabitName.placeholder = "enter_tracker_name".localized
         textFieldOfHabitName.textColor = .ypBlackDay
         textFieldOfHabitName.backgroundColor = .ypBackgroundDay
         textFieldOfHabitName.layer.masksToBounds = true
@@ -268,11 +307,13 @@ final class CreateHabitViewController: UIViewController {
         textFieldOfHabitName.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(textFieldOfHabitName)
         
+        textFieldTopConstraint = textFieldOfHabitName.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38)
+        textFieldTopConstraint?.isActive = true
+        
         NSLayoutConstraint.activate([
             textFieldOfHabitName.heightAnchor.constraint(equalToConstant: 75),
             textFieldOfHabitName.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            textFieldOfHabitName.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            textFieldOfHabitName.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38)
+            textFieldOfHabitName.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16)
         ])
     }
     
@@ -350,10 +391,10 @@ final class CreateHabitViewController: UIViewController {
     }
     
     private func getDefaultCategory() -> TrackerCategory {
-        if let generalCategory = categories.first(where: { $0.title == "Общее" }) {
+        if let generalCategory = categories.first(where: { $0.title == "general".localized }) {
             return generalCategory
         } else {
-            return TrackerCategory(title: "Общее", trackers: [])
+            return TrackerCategory(title: "general".localized, trackers: [])
         }
     }
     
@@ -362,6 +403,10 @@ final class CreateHabitViewController: UIViewController {
         
         createButton.isEnabled = isFormValid
         createButton.backgroundColor = isFormValid ? .ypBlackDay : .ypGray
+        
+        if isEditingMode {
+            updateCreateButtonForEditingMode()
+        }
     }
     
     private func showWarningLabel() {
@@ -393,6 +438,75 @@ final class CreateHabitViewController: UIViewController {
         } completion: { _ in
             self.warningLabel.isHidden = true
         }
+    }
+    
+    // MARK: - Private Methods - Editing Mode
+    private func setupEditingMode() {
+        guard let tracker = editingTracker else { return }
+        
+        titleLabel.text = "edit_habit".localized
+        
+        textFieldOfHabitName.text = tracker.title
+        selectedEmoji = tracker.emoji
+        selectedColor = tracker.color
+        selectedSchedule = tracker.schedule ?? []
+        selectedCategory = editingCategory
+        
+        if let category = editingCategory {
+            settingsOptions[0] = SettingsOption(
+                title: "category".localized,
+                subtitle: category.title,
+                type: .category
+            )
+        }
+        
+        updateDaysCount()
+        updateScheduleSubtitle()
+        updateCreateButtonForEditingMode()
+        
+        daysCountLabel.isHidden = false
+        updateTextFieldConstraint()
+        
+        DispatchQueue.main.async { [weak self] in
+            self?.collectionView.reloadData()
+            self?.tableView.reloadData()
+            self?.updateCreateButtonState()
+        }
+    }
+    
+    private func updateDaysCount() {
+        guard let tracker = editingTracker else {
+            daysCountLabel.text = nil
+            return
+        }
+        
+        do {
+            let daysCount = try trackerRecordStore?.completedDaysCount(for: tracker.id) ?? 0
+            daysCountLabel.text = Localization.daysCount(daysCount)
+        } catch {
+            daysCountLabel.text = Localization.daysCount(0)
+        }
+    }
+    
+    private func updateTextFieldConstraint() {
+        textFieldTopConstraint?.isActive = false
+        
+        if isEditingMode && !daysCountLabel.isHidden {
+            textFieldTopConstraint = textFieldOfHabitName.topAnchor.constraint(equalTo: daysCountLabel.bottomAnchor, constant: 38)
+        } else {
+            textFieldTopConstraint = textFieldOfHabitName.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38)
+        }
+        
+        textFieldTopConstraint?.isActive = true
+        
+        if view.window != nil {
+            view.layoutIfNeeded()
+        }
+    }
+    
+    private func updateCreateButtonForEditingMode() {
+        let buttonTitle = isEditingMode ? "save".localized : "create".localized
+        createButton.setTitle(buttonTitle, for: .normal)
     }
 }
 
@@ -495,9 +609,9 @@ extension CreateHabitViewController: UICollectionViewDelegate {
         }
         
         if indexPath.section == 0 {
-            headerView.configure(with: "Emoji")
+            headerView.configure(with: "emoji".localized)
         } else {
-            headerView.configure(with: "Цвет")
+            headerView.configure(with: "color".localized)
         }
         
         return headerView
@@ -579,13 +693,13 @@ extension CreateHabitViewController: CategorySelectionDelegate {
         
         if let category = category {
             settingsOptions[0] = SettingsOption(
-                title: "Категория",
+                title: "category".localized,
                 subtitle: category.title,
                 type: .category
             )
         } else {
             settingsOptions[0] = SettingsOption(
-                title: "Категория",
+                title: "category".localized,
                 subtitle: nil,
                 type: .category
             )

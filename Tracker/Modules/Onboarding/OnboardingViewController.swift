@@ -1,22 +1,24 @@
 import UIKit
 
+// MARK: - OnboardingViewController
 final class OnboardingViewController: UIPageViewController {
     
     // MARK: - Properties
     lazy var pages: [UIViewController] = {
         let blue = createOnboardingPage(
             backgroundImageName: "onboarding blue",
-            title: "Отслеживайте только\nто, что хотите"
+            title: "track_only_what_you_want".localized
         )
         
         let red = createOnboardingPage(
             backgroundImageName: "onboarding red",
-            title: "Даже если это\nне литры воды и йога"
+            title: "even_if_not_water_and_yoga".localized
         )
         
         return [blue, red]
     }()
     
+    // MARK: - UI Elements
     lazy var pageControl: UIPageControl = {
         let pageControl = UIPageControl()
         pageControl.numberOfPages = pages.count
@@ -32,7 +34,7 @@ final class OnboardingViewController: UIPageViewController {
         button.backgroundColor = .ypBlackDay
         button.layer.masksToBounds = true
         button.layer.cornerRadius = 16
-        button.setTitle("Вот это технологии!", for: .normal)
+        button.setTitle("that_is_technology".localized, for: .normal)
         button.setTitleColor(.ypWhiteDay, for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -46,16 +48,19 @@ final class OnboardingViewController: UIPageViewController {
         setupUI()
     }
     
-    // MARK: - Private Methods
-    private func setupPageViewController() {
-        dataSource = self
-        delegate = self
+    // MARK: - Actions
+    @objc private func didTapButton() {
+        OnboardingManager.shared.markOnboardingAsShown()
         
-        if let first = pages.first {
-            setViewControllers([first], direction: .forward, animated: true, completion: nil)
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let sceneDelegate = windowScene.delegate as? SceneDelegate else {
+            return
         }
+        
+        sceneDelegate.showMainScreen()
     }
     
+    // MARK: - SetupUI
     private func setupUI() {
         view.addSubview(pageControl)
         view.addSubview(button)
@@ -63,31 +68,14 @@ final class OnboardingViewController: UIPageViewController {
         button.addTarget(self, action: #selector(didTapButton), for: .touchUpInside)
         
         NSLayoutConstraint.activate([
-            // Page Control рядом с кнопкой
             pageControl.bottomAnchor.constraint(equalTo: button.topAnchor, constant: -24),
             pageControl.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
-            // Кнопка внизу
             button.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -50),
             button.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             button.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             button.heightAnchor.constraint(equalToConstant: 60)
         ])
-    }
-    
-    @objc private func didTapButton() {
-        OnboardingManager.shared.markOnboardingAsShown()
-        let tabBarController = TabBarController()
-        
-        if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate {
-            sceneDelegate.showMainScreen()
-        } else {
-            guard let window = UIApplication.shared.windows.first else { return }
-            
-            UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: {
-                window.rootViewController = tabBarController
-            }, completion: nil)
-        }
     }
     
     private func createOnboardingPage(backgroundImageName: String, title: String) -> UIViewController {
@@ -129,6 +117,16 @@ final class OnboardingViewController: UIPageViewController {
         
         return viewController
     }
+    
+    // MARK: - Private Methods
+    private func setupPageViewController() {
+        dataSource = self
+        delegate = self
+        
+        if let first = pages.first {
+            setViewControllers([first], direction: .forward, animated: true, completion: nil)
+        }
+    }
 }
 
 // MARK: - UIPageViewControllerDataSource
@@ -137,13 +135,10 @@ extension OnboardingViewController: UIPageViewControllerDataSource {
         guard let viewControllerIndex = pages.firstIndex(of: viewController) else {
             return nil
         }
-        
         let previousIndex = viewControllerIndex - 1
-        
         guard previousIndex >= 0 else {
             return pages.last
         }
-        
         return pages[previousIndex]
     }
     
@@ -151,13 +146,10 @@ extension OnboardingViewController: UIPageViewControllerDataSource {
         guard let viewControllerIndex = pages.firstIndex(of: viewController) else {
             return nil
         }
-        
         let nextIndex = viewControllerIndex + 1
-        
         guard nextIndex < pages.count else {
             return pages.first
         }
-        
         return pages[nextIndex]
     }
 }

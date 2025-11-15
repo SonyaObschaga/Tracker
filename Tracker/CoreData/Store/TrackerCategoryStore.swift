@@ -224,6 +224,50 @@ extension TrackerCategoryStore: TrackerCategoryStoreProtocol {
         try fetchedResultsController.performFetch()
     }
     
+    func deleteTracker(_ trackerId: UUID, fromCategory categoryTitle: String) throws {
+        let fetchRequest: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "title == %@", categoryTitle)
+        
+        let results = try context.fetch(fetchRequest)
+        guard let categoryCoreData = results.first,
+              let trackers = categoryCoreData.trackers?.allObjects as? [TrackerCoreData],
+              let trackerToDelete = trackers.first(where: { $0.id == trackerId.uuidString }) else {
+            throw NSError(domain: "TrackerCategoryStore", code: 404, userInfo: [NSLocalizedDescriptionKey: "Tracker not found"])
+        }
+        
+        categoryCoreData.removeFromTrackers(trackerToDelete)
+        context.delete(trackerToDelete)
+        try context.save()
+        try fetchedResultsController.performFetch()
+    }
+    
+    func updateTracker(_ oldTracker: Tracker, to newTracker: Tracker, inCategory categoryTitle: String) throws {
+        let fetchRequest: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "title == %@", categoryTitle)
+        
+        let results = try context.fetch(fetchRequest)
+        guard let categoryCoreData = results.first,
+              let trackers = categoryCoreData.trackers?.allObjects as? [TrackerCoreData],
+              let trackerCoreData = trackers.first(where: { $0.id == oldTracker.id.uuidString }) else {
+            throw NSError(domain: "TrackerCategoryStore", code: 404, userInfo: [NSLocalizedDescriptionKey: "Tracker not found"])
+        }
+        
+        trackerCoreData.id = newTracker.id.uuidString
+        trackerCoreData.title = newTracker.title
+        trackerCoreData.emoji = newTracker.emoji
+        trackerCoreData.isRegular = newTracker.isRegular
+        trackerCoreData.color = newTracker.color.toString()
+        
+        if let scheduleData = newTracker.schedule?.toData() {
+            trackerCoreData.schedule = scheduleData
+        } else {
+            trackerCoreData.schedule = nil
+        }
+        
+        try context.save()
+        try fetchedResultsController.performFetch()
+    }
+    
     // MARK: - Private Methods
     private func convertToTracker(from trackerCoreData: TrackerCoreData) -> Tracker? {
         guard let idString = trackerCoreData.id,
